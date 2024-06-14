@@ -14,9 +14,6 @@ class CheckoutController extends Controller
     public function index(Request $request,$id){
         $orders = Order::findorFail($id);
         $request->session()->forget('cart');
-        \Midtrans\Config::$serverKey = 'Mid-server-UJL8yt4WQ6W81eu-oqKt3jJH';
-        \Midtrans\Config::$clientKey = 'Mid-client-ZcODSeM34iMlSi-o';
-
 
         // Uncomment for production environment
         Config::$isProduction = true;
