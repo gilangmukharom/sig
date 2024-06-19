@@ -11,4 +11,3 @@
         </div>
     </div>
 </x-guest-layout>
-{{-- test --}}
