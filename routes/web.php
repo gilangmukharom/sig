@@ -8,6 +8,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AnalyzeController;
+use App\Http\Controllers\AnalyzeDashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,6 +24,7 @@ Route::get('/home-sig', [AnalyzeController::class, 'index'])->name('index');
 Route::get('/signin', [AnalyzeController::class, 'login'])->name('login');
 Route::get('/signup', [AnalyzeController::class, 'signup'])->name('signup');
 Route::get('/payment', [AnalyzeController::class, 'paymentAndBilling'])->name('payment');
+Route::get('/dashboard-core', [AnalyzeDashboardController::class, 'index'])->name('dashboard');
 
 
 Route::get('/', [HomeController::class, 'index']);

@@ -15,6 +15,7 @@ class EmitenStock extends Component
         ['code' => 'BBNI', 'name' => 'Bank Negara Indonesia Tbk'],
     ];
     public $selectedEmiten = [];
+    public $submitMessage = '';
 
     public function selectEmiten($code)
     {
@@ -27,8 +28,8 @@ class EmitenStock extends Component
 
     public function submit()
     {
-        // Process the selected emiten
-        dd($this->selectedEmiten);
+        // Emit event to parent component with the selected emiten data
+        $this->emit('emitenSelected', $this->selectedEmiten);
     }
 
     public function render()

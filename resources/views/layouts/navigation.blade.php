@@ -19,7 +19,7 @@
     @include('components.navbarMobile')
     <div class="containerNav">
         @include('components.sidebar')
-        <div class="navbarNav">
+        <div class="navbarNav bg-light">
             @include('components.navbar', ['title' => $title ?? 'Dashboard'])
             <div class="content m-4">
                 @yield('contents')

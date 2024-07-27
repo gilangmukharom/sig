@@ -10,6 +10,10 @@
     background-color: #C0F2C0;
 }
 
+.third-bg{
+    background-color: #f8f9fa;
+}
+
 .secondary-color{
     color: #043300;
 }
@@ -28,6 +32,15 @@
 
 .text-justify{
     text-align: justify;
+}
+
+.text-item-nav{
+    color: black;
+    text-decoration: none;
+}
+
+.text-item-nav:hover{
+    color: #43654C !important;
 }
 
 .img-logo{
@@ -59,6 +72,33 @@
     box-shadow: 0 0 105px rgb(0, 70, 21);
 }
 
+.nav-link {
+    position: relative;
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    color: black;
+    text-decoration: none;
+}
+
+.nav-link:hover::after, .nav-link.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background-color: green;
+    transition: width 0.3s;
+}
+
+.nav-link:hover::after {
+    width: 100%;
+}
+
+.nav-link.active::after {
+    width: 100%;
+}
+
 .containerNav {
     display: flex;
     min-height: 100vh;
@@ -66,7 +106,6 @@
 
 .sidebarNav {
     width: 80px;
-    background-color: #f8f9fa;
     padding: 15px;
     border-right: 1px solid #c7c7c797;
 }

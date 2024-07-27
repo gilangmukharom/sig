@@ -22,7 +22,13 @@
         @endforeach
     </div>
 
-    <div class="text-center mt-4">
-        <button class="btn btn-primary" wire:click="submit">Submit</button>
+    <div class="text-center m-4">
+        <button class="border-1 w-25 p-2 rounded" wire:click="submit">Submit</button>
     </div>
+
+    @if ($submitMessage)
+        <div class="alert alert-success mt-4">
+            {{ $submitMessage }}
+        </div>
+    @endif
 </div>

@@ -16,8 +16,8 @@
             @include('livewire.sections.pack')
         @elseif ($activeLink === 'emiten')
             <livewire:emiten-stock />
-        @elseif ($activeLink === 'paymentDetail')
-            @include('livewire.sections.payment-detail')
+        @elseif ($activeLink === 'paymentDetail' && $selectedEmiten)
+            <livewire:payment-detail :selectedEmiten="$selectedEmiten" />
         @endif
     </div>
 </div>
