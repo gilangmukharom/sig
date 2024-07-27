@@ -48,4 +48,4 @@ class AppServiceProvider extends ServiceProvider
     {
         return $this->calculateTotalBeforeDiscount($cart) - $this->calculateTotalDiscount($cart);
     }
-    }
+}

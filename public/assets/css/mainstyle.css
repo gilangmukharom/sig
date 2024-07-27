@@ -1,0 +1,88 @@
+.primary-color{
+    background-color: #43654C;
+}
+
+.primary-color-text{
+    color: #43654C;
+}
+
+.secondary-bg{
+    background-color: #C0F2C0;
+}
+
+.secondary-color{
+    color: #043300;
+}
+
+.w-80{
+    width: 80%;
+}
+
+.w-90{
+    width: 90%;
+}
+
+.w-70{
+    width: 70%;
+}
+
+.text-justify{
+    text-align: justify;
+}
+
+.img-logo{
+    max-height: 150px;
+    width: auto;
+}
+
+.signin-logo-img{
+    max-height: 50px;
+    width: auto;
+}
+
+.signup-logo-img{
+    max-height: 100px;
+    width: auto;
+}
+
+.signin-image img{
+    max-height: 70vh;
+    width: auto;
+}
+
+.btn-custom:hover{
+    background-color: #43654C !important;
+    color: white;
+}
+
+.about-us-image {
+    box-shadow: 0 0 105px rgb(0, 70, 21);
+}
+
+.containerNav {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebarNav {
+    width: 80px;
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-right: 1px solid #c7c7c797;
+}
+
+.navbarNav {
+    flex-grow: 1;
+    padding: 0;
+}
+
+.navbar{
+    border-bottom : 1px solid #c7c7c797;
+}
+
+.navbar-profile img {
+    border-radius: 50%;
+    object-fit: cover;
+    width: 40px;
+    height: 40px;
+}

@@ -7,6 +7,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AnalyzeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,6 +19,11 @@ use App\Http\Controllers\AdminController;
 | contains the "web" middleware group. Now create something great!
 |
 */
+Route::get('/home-sig', [AnalyzeController::class, 'index'])->name('index');
+Route::get('/signin', [AnalyzeController::class, 'login'])->name('login');
+Route::get('/signup', [AnalyzeController::class, 'signup'])->name('signup');
+Route::get('/payment', [AnalyzeController::class, 'paymentAndBilling'])->name('payment');
+
 
 Route::get('/', [HomeController::class, 'index']);
 Route::get('/about', [HomeController::class, 'aboutus'])->name('about');
