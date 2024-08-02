@@ -32,7 +32,7 @@
         @if ($activeTab === 'general-information')
             <livewire:dashboard.general-information :company="$companies[$selectedCompany]" />
         @elseif ($activeTab === 'key-statics')
-            <livewire:dashboard.key-statics :company="$company" />
+            <livewire:dashboard.key-statics :company="$companies[$selectedCompany]" :incomeStatementData="$incomeStatementData" />
         @elseif ($activeTab === 'key-ratio')
             <livewire:dashboard.key-ratio :company="$companies[$selectedCompany]" />
         @endif

@@ -67,67 +67,78 @@
             @endforeach
         </div>
     </div>
-
+    
+    <p class="mt-4"><b>Analyze Statistics</b></p>
     <hr>
 
     <div class="row">
-        <div class="col-md-12">
-            <div id="container"></div>
+        <div class="col-md-4">
+            <div id="container1"></div>
+        </div>
+        <div class="col-md-4">
+            <div id="container2"></div>
+        </div>
+        <div class="col-md-4">
+            <div id="container3"></div>
         </div>
     </div>
 </div>
 
 <script>
-    console.log('Raw incomeStatementData:', @json($incomeStatementData));
+    document.addEventListener('DOMContentLoaded', function () {
+        const incomeStatementData = @json($incomeStatementData);
+        const financialPositionData = @json($financialPositionData);
+        const dividendData = @json($dividendData);
 
-    document.addEventListener('DOMContentLoaded', function() {
-        loadKeyStatisticsChart(@json($incomeStatementData));
+        loadKeyStatisticsChart('container1', incomeStatementData);
+        loadKeyStatisticsChart('container2', financialPositionData);
+        loadKeyStatisticsChart('container3', dividendData);
     });
 
     window.addEventListener('update-chart', function(event) {
-        loadKeyStatisticsChart(event.detail.incomeStatementData);
+        loadKeyStatisticsChart('container1', event.detail.incomeStatementData);
+        loadKeyStatisticsChart('container2', event.detail.financialPositionData);
+        loadKeyStatisticsChart('container3', event.detail.dividendData);
     });
 
-    function loadKeyStatisticsChart(incomeStatementData) {
-        console.log('loadKeyStatisticsChart called with:', incomeStatementData);
+    function loadKeyStatisticsChart(container, data) {
+        // Verifikasi bahwa data memiliki format yang diharapkan
+        if (!data || !data.categories || !data.series) {
+            console.error("Invalid data format:", data);
+            return;
+        }
 
         const formattedData = {
-            categories: incomeStatementData.categories,
-            series: incomeStatementData.series.map(series => ({
-                name: series.name,
-                data: series.data.map(value => !isNaN(parseFloat(value)) ? parseFloat(value) : null)
-            }))
+            categories: data.categories,
+            series: data.series.map(series => {
+                return {
+                    name: series.name,
+                    data: data.categories.map(category => {
+                        const value = series.data[category];
+                        return !isNaN(parseFloat(value)) ? parseFloat(value) : null;
+                    })
+                };
+            })
         };
 
-        console.log('Formatted data:', formattedData);
-
         if (formattedData.categories && formattedData.series) {
-            try {
-                Highcharts.chart('container', {
-                    chart: {
-                        type: 'column'
-                    },
+            Highcharts.chart(container, {
+                chart: {
+                    type: 'column'
+                },
+                title: {
+                    text: 'Data for ' + container
+                },
+                xAxis: {
+                    categories: formattedData.categories
+                },
+                yAxis: {
                     title: {
-                        text: 'Income Statement Data for 2024'
-                    },
-                    xAxis: {
-                        categories: formattedData.categories
-                    },
-                    yAxis: {
-                        title: {
-                            text: 'Values in Billion'
-                        }
-                    },
-                    series: [{
-                        name: 'Revenue',
-                        data: formattedData.series[0].data
-                    }]
-                });
-            } catch (error) {
-                console.error('Highcharts error:', error);
-            }
-        } else {
-            console.error("Data for chart is not available or improperly formatted.");
+                        text: 'Values in Billion'
+                    }
+                },
+                series: formattedData.series
+            });
         }
     }
 </script>

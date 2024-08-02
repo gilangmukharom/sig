@@ -61,8 +61,8 @@ class DashboardCore extends Component
                 'dividendPerSheet' => [
                     'Q1' => ['2024' => '2.000', '2023' => '1.500', '2022' => '1.000'],
                     'Q2' => ['2024' => '1.500', '2023' => '1.000', '2022' => '500'],
-                    'Q3' => ['2024' => '1.000', '2023' => '500', '2022' => '0'],
-                    'Q4' => ['2024' => '500', '2023' => '0', '2022' => '0'],
+                    'Q3' => ['2024' => '1.000', '2023' => '500', '2022' => '600'],
+                    'Q4' => ['2024' => '500', '2023' => '300', '2022' => '800'],
                 ],
                 'yield' => [
                     'Q1' => ['2024' => '3%', '2023' => '2.5%', '2022' => '2%'],
@@ -256,52 +256,28 @@ class DashboardCore extends Component
         // Add more companies here
     ];
 
+    public function mount()
+    {
+        $this->emit('companyChanged', $this->companies[$this->selectedCompany]);
+    }
+
     public function updatedSelectedCompany()
     {
         $this->emit('companyChanged', $this->companies[$this->selectedCompany]);
-        $this->updateIncomeStatementData();
     }
 
     public function setActiveTab($tab)
     {
         $this->activeTab = $tab;
-        if ($tab === 'key-statics') {
-            $this->updateIncomeStatementData();
+        if ($tab === 'key-statics' || $tab === 'key-ratio') {
+            $this->emit('companyChanged', $this->companies[$this->selectedCompany]);
         }
-    }
+    }   
 
-    public function updateIncomeStatementData()
-    {
-        $companyData = $this->companies[$this->selectedCompany];
-        $this->incomeStatementData = [
-            'categories' => array_keys($companyData['revenueData']['revenue']),
-            'series' => [
-                [
-                    'name' => 'Revenue',
-                    'data' => array_map(function ($val) {
-                        return floatval(str_replace(' B', '', $val['2024']));
-                    }, $companyData['revenueData']['revenue']),
-                ],
-                [
-                    'name' => 'Gross Profit',
-                    'data' => array_map(function ($val) {
-                        return floatval(str_replace(' B', '', $val['2024']));
-                    }, $companyData['revenueData']['grossProfit']),
-                ],
-                [
-                    'name' => 'Net Profit',
-                    'data' => array_map(function ($val) {
-                        return floatval(str_replace(' B', '', $val['2024']));
-                    }, $companyData['revenueData']['netProfit']),
-                ],
-            ],
-        ];
-    }
     public function render()
     {
         return view('livewire.dashboard-core', [
             'company' => $this->companies[$this->selectedCompany],
-            'incomeStatementData' => $this->incomeStatementData,
         ]);
     }
 }
