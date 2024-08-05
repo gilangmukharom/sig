@@ -25,6 +25,7 @@ Route::get('/signin', [AnalyzeController::class, 'login'])->name('login');
 Route::get('/signup', [AnalyzeController::class, 'signup'])->name('signup');
 Route::get('/payment', [AnalyzeController::class, 'paymentAndBilling'])->name('payment');
 Route::get('/dashboard-core', [AnalyzeDashboardController::class, 'index'])->name('dashboard');
+Route::get('/setting', [AnalyzeDashboardController::class, 'setting'])->name('setting');
 
 
 Route::get('/', [HomeController::class, 'index']);

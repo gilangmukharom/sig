@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/mainstyle.css') }}">
     <link rel="shortcut icon" type="image/x-icon" href="assets/img/logo/logo.png">
     <link rel="stylesheet" href="{{asset('assets/css/font-awesome-pro.css')}}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.0/font/bootstrap-icons.min.css">
     <meta name="description" content>
     <title>SIG Institute</title>
 </head>

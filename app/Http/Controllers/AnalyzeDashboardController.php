@@ -12,4 +12,9 @@ class AnalyzeDashboardController extends Controller
     {
         return view('analyze.dashboard');
     }
+
+    public function setting()
+    {
+        return view('analyze.settings', ['title' => 'Settings']);
+    }
 }
