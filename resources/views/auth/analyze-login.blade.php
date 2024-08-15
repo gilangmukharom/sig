@@ -16,15 +16,15 @@
         </div>
 
         <div class="signin-form d-flex flex-column justify-content-center bg-white w-100">
-            <form action="{{ route('login') }}" method="POST" class="w-70 m-auto">
+            <form action="{{ route('signin') }}" method="POST" class="w-70 m-auto">
                 <div class="signin-typography mb-5">
                     <h1>Sign in</h1>
                     <p>Welcome back! Login with your data that you entered during registration</p>
                 </div>
                 @csrf
                 <div class="mb-3">
-                    <x-mandatory-validation for="email" label="Username / Email address" />
-                    <input type="email" class="form-control" id="email" name="email" required>
+                    <x-mandatory-validation for="email_or_username" label="Username / Email address" />
+                    <input type="text" class="form-control" id="email_or_username" name="email_or_username" required> <!-- Ubah ke tipe text jika Anda ingin memungkinkan login dengan username atau email -->
                 </div>
                 <div class="mb-3 position-relative">
                     <x-mandatory-validation for="password" label="Password" />
@@ -44,9 +44,19 @@
                         <a href="{{ route('password.request') }}" class="text-decoration-none text-black">Forgot Password?</a>
                     </div>
                 </div>
+                <!-- Menampilkan error jika login gagal -->
+                @if ($errors->any())
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
                 <button type="submit" class="btn btn-custom border border-2 w-100 mt-4">Login</button>
                 <div class="signin-register mt-3 text-center">
-                    <p>Don't have account? <a href="" class="primary-color-text">Register here</a></p>
+                    <p>Don't have account? <a href="{{ route('signup') }}" class="primary-color-text">Register here</a></p> <!-- Perbaiki route menuju signup -->
                 </div>
             </form>
         </div>

@@ -3,8 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Order;
-use Auth;
+use App\Models\UserAnalyze;
+use Illuminate\Support\Facades\Auth as FacadesAuth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use App\Mail\RegisterMail;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 
 class AnalyzeController extends Controller
 {
@@ -12,14 +17,142 @@ class AnalyzeController extends Controller
     {
         return view('analyze.home');
     }
-    public function login()
+    public function signin()
     {
         return view('auth.analyze-login');
     }
 
+    public function login(Request $request)
+    {
+        $login = $request->input('email_or_username');
+        $password = $request->input('password');
+
+        $user = UserAnalyze::where('email', $login)
+            ->orWhere('username', $login)
+            ->first();
+
+        if ($user && Hash::check($password, $user->password)) {
+            if (!$user->hasVerifiedEmail()) {
+                FacadesAuth::login($user);
+                return redirect()->route('verification.notice')->withErrors('Please verify your email before accessing the dashboard.');
+            }
+            FacadesAuth::login($user);
+            return redirect()->route('dashboard-core');
+        }
+
+        return redirect()->back()->withErrors('Invalid credentials');
+    }
+
+
     public function signup()
     {
         return view('auth.analyze-signup');
+    }
+
+    public function register(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:user_analyze',
+            'email' => 'required|string|email|max:255|unique:user_analyze',
+            'password' => 'required|string|min:8|confirmed',
+            'address' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:15',
+            'work' => 'nullable|string|max:255',
+        ]);
+
+        $userAnalyze = UserAnalyze::create([
+            'name' => $request->name,
+            'username' => $request->username,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'address' => $request->address,
+            'phone' => $request->phone,
+            'work' => $request->work,
+            'role' => $request->input('role', 'user'),
+            'user_type' => 'free',
+        ]);
+        $verificationUrl = URL::temporarySignedRoute(
+            'verification.verify', // Route name untuk verifikasi
+            now()->addMinutes(60), // Waktu kedaluwarsa URL
+            [
+                'id' => $userAnalyze->id,
+                'hash' => sha1($userAnalyze->email), // Hash dari email pengguna
+            ]
+        );
+
+        Mail::to($userAnalyze->email)->send(new RegisterMail($userAnalyze, $verificationUrl));
+
+        return redirect()->route('signin')->with('status', 'Verification link has been sent to your email.');
+    }
+
+    public function resendVerificationEmail(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->hasVerifiedEmail()) {
+            return redirect()->route('dashboard-core')->with('status', 'Your email is already verified.');
+        }
+
+        $verificationUrl = URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addMinutes(60),
+            [
+                'id' => $user->id,
+                'hash' => sha1($user->email),
+            ]
+        );
+
+        Mail::to($user->email)->send(new RegisterMail($user, $verificationUrl));
+
+        return redirect()->route('verification.notice')->with('status', 'Verification link sent!');
+    }
+
+    public function logout()
+    {
+        FacadesAuth::logout();
+        return redirect()->route('signin');
+    }
+
+    public function verifyEmail()
+    {
+        return view('auth.analyze-verify-email');
+    }
+
+    public function verify(Request $request, $id, $hash)
+    {
+        if (!$request->hasValidSignature()) {
+            return redirect()->route('signin')->with('error', 'Invalid or expired verification link. Please request a new verification email.');
+        }
+
+        $user = UserAnalyze::find($id);
+
+        if (!$user) {
+            return redirect()->route('signin')->with('error', 'User not found.');
+        }
+
+        if (!hash_equals($hash, sha1($user->email))) {
+            return redirect()->route('signin')->with('error', 'Invalid verification link.');
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return redirect()->route('signin')->with('message', 'Email already verified. Please log in.');
+        }
+
+        $user->markEmailAsVerified();
+
+        return redirect()->route('signin')->with('message', 'Email successfully verified. Please log in.');
+    }
+
+    public function emailVerified(EmailVerificationRequest $request)
+    {
+        if ($request->user()->hasVerifiedEmail()) {
+            return redirect()->route('dashboard-core');
+        }
+
+        $request->fulfill();
+
+        return redirect()->route('dashboard-core')->with('status', 'Your email address has been verified.');
     }
 
     public function paymentAndBilling()

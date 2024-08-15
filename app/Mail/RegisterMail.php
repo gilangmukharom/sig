@@ -8,21 +8,23 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\URL;
 
 class RegisterMail extends Mailable
 {
     use Queueable, SerializesModels;
-
+    public $user;
+    public $verificationUrl;
     /**
      * Create a new message instance.
-     *
+     * @param $user
      * @return void
      */
-    public function __construct()
+    public function __construct($user, $verificationUrl)
     {
-        //
+        $this->user = $user;
+        $this->verificationUrl = $verificationUrl;
     }
-
     /**
      * Get the message envelope.
      *
@@ -40,10 +42,15 @@ class RegisterMail extends Mailable
      *
      * @return \Illuminate\Mail\Mailables\Content
      */
+
     public function content()
     {
         return new Content(
             view: 'emails.registermail',
+            with: [
+                'name' => $this->user->name,
+                'verificationUrl' => $this->verificationUrl,
+            ]
         );
     }
 
