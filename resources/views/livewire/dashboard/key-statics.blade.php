@@ -102,7 +102,6 @@
     });
 
     function loadKeyStatisticsChart(container, data) {
-        // Verifikasi bahwa data memiliki format yang diharapkan
         if (!data || !data.categories || !data.series) {
             console.error("Invalid data format:", data);
             return;
@@ -113,10 +112,7 @@
             series: data.series.map(series => {
                 return {
                     name: series.name,
-                    data: data.categories.map(category => {
-                        const value = series.data[category];
-                        return !isNaN(parseFloat(value)) ? parseFloat(value) : null;
-                    })
+                    data: series.data.map(value => parseFloat(value))
                 };
             })
         };

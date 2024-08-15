@@ -27,6 +27,7 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::get('/payment', [AnalyzeController::class, 'paymentAndBilling'])->name('payment');
     Route::get('/dashboard-core', [AnalyzeDashboardController::class, 'index'])->name('dashboard-core');
     Route::get('/setting', [AnalyzeDashboardController::class, 'setting'])->name('setting');
+    Route::get('/profile-user', [AnalyzeDashboardController::class, 'profileUser'])->name('profile-user');
 });
 Route::get('/signin', [AnalyzeController::class, 'signin'])->name('signin');
 Route::post('/signin', [AnalyzeController::class, 'login'])->name('signin');
@@ -37,7 +38,7 @@ Route::post('/email/verification-notification', [AnalyzeController::class, 'rese
 Route::get('/email/verify', [AnalyzeController::class, 'verifyEmail'])->name('verification.notice');
 
 Route::get('/email/verifyMail/{id}/{hash}', [AnalyzeController::class, 'verify'])->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
-Route::get('/analyze-email/verified', [AnalyzeController::class, 'emailVerified'])->name('email.verified');
+Route::get('/email/verified', [AnalyzeController::class, 'emailVerified'])->name('email.verified');
 
 
 Route::get('/', [HomeController::class, 'index']);

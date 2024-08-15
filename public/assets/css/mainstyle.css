@@ -68,6 +68,16 @@
     color: white;
 }
 
+.btn-custom2{
+    background-color: #43654C !important;
+    color: white;
+}
+
+.btn-custom2:hover{
+    background-color: white !important;
+    color: #43654C;
+}
+
 .about-us-image {
     box-shadow: 0 0 105px rgb(0, 70, 21);
 }

@@ -24,7 +24,7 @@
                 @csrf
                 <div class="mb-3">
                     <x-mandatory-validation for="email_or_username" label="Username / Email address" />
-                    <input type="text" class="form-control" id="email_or_username" name="email_or_username" required> <!-- Ubah ke tipe text jika Anda ingin memungkinkan login dengan username atau email -->
+                    <input type="text" class="form-control" id="email_or_username" name="email_or_username" required>
                 </div>
                 <div class="mb-3 position-relative">
                     <x-mandatory-validation for="password" label="Password" />
@@ -41,24 +41,56 @@
                         <label class="form-check-label" for="remember">Remember me</label>
                     </div>
                     <div class="signin-forgot">
-                        <a href="{{ route('password.request') }}" class="text-decoration-none text-black">Forgot Password?</a>
+                        <a href="{{ route('password.request') }}" class="text-decoration-none text-black">Forgot
+                            Password?</a>
                     </div>
                 </div>
-                <!-- Menampilkan error jika login gagal -->
-                @if ($errors->any())
-                    <div class="alert alert-danger">
-                        <ul class="mb-0">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
+
                 <button type="submit" class="btn btn-custom border border-2 w-100 mt-4">Login</button>
                 <div class="signin-register mt-3 text-center">
-                    <p>Don't have account? <a href="{{ route('signup') }}" class="primary-color-text">Register here</a></p> <!-- Perbaiki route menuju signup -->
+                    <p>Don't have account? <a href="{{ route('signup') }}" class="primary-color-text">Register here</a></p>
                 </div>
             </form>
         </div>
     </div>
+
+    @if (session('status'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('status') }}',
+                    confirmButtonText: 'OK'
+                });
+            });
+        </script>
+    @endif
+
+    @if (session('message'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('message') }}',
+                    confirmButtonText: 'OK'
+                });
+            });
+        </script>
+    @endif
+
+    @if (session('error'))
+        <script>
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'error',
+                title: '{{ session('error') }}',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+            });
+        </script>
+    @endif
 @endsection

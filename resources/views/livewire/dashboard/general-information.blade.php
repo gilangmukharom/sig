@@ -3,17 +3,17 @@
         <div class="col-md-6">
             <div class="card p-3 border-0">
                 <h4>Company Profile</h4>
-                <p>{{ $company['name'] }}</p>
-                <p>Address: {{ $company['address'] }}</p>
-                <p>Market Cap: {{ $company['marketCap'] }}</p>
-                <p>Price: {{ $company['price'] }}</p>
-                <p>Growth Net (YoY): {{ $company['growth'] }}</p>
+                <p>{{ $company->name }}</p>
+                <p>Address: {{ $company->address }}</p>
+                <p>Market Cap: {{ $company->market_cap }}</p>
+                <p>Price: {{ $company->price }}</p>
+                <p>Growth Net (YoY): {{ $company->growth }}</p>
             </div>
         </div>
         <div class="col-md-6">
             <div class="card p-3 border-0">
                 <h4>Description</h4>
-                <p>{{ $company['description'] ?? 'Description not available.' }}</p>
+                <p>{{ $company->description ?? 'Description not available.' }}</p>
             </div>
         </div>
     </div>
@@ -28,19 +28,19 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Periode</th>
+                            <th>Period</th>
                             <th>2024</th>
                             <th>2023</th>
                             <th>2022</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($company['revenueData']['revenue'] as $period => $data)
+                        @foreach ($company->revenues as $revenue)
                             <tr>
-                                <td>{{ $period }}</td>
-                                <td>{{ $data['2024'] }}</td>
-                                <td>{{ $data['2023'] }}</td>
-                                <td>{{ $data['2022'] }}</td>
+                                <td>{{ $revenue->quarter }}</td>
+                                <td>{{ $revenue->revenue }}</td>
+                                <td>{{ $revenue->revenue }}</td>
+                                <td>{{ $revenue->revenue }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -53,19 +53,19 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Periode</th>
+                            <th>Period</th>
                             <th>2024</th>
                             <th>2023</th>
                             <th>2022</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($company['revenueData']['grossProfit'] as $period => $data)
+                        @foreach ($company->revenues as $revenue)
                             <tr>
-                                <td>{{ $period }}</td>
-                                <td>{{ $data['2024'] }}</td>
-                                <td>{{ $data['2023'] }}</td>
-                                <td>{{ $data['2022'] }}</td>
+                                <td>{{ $revenue->quarter }}</td>
+                                <td>{{ $revenue->gross_profit }}</td>
+                                <td>{{ $revenue->gross_profit }}</td>
+                                <td>{{ $revenue->gross_profit }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -78,19 +78,19 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Periode</th>
+                            <th>Period</th>
                             <th>2024</th>
                             <th>2023</th>
                             <th>2022</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($company['revenueData']['netProfit'] as $period => $data)
+                        @foreach ($company->revenues as $revenue)
                             <tr>
-                                <td>{{ $period }}</td>
-                                <td>{{ $data['2024'] }}</td>
-                                <td>{{ $data['2023'] }}</td>
-                                <td>{{ $data['2022'] }}</td>
+                                <td>{{ $revenue->quarter }}</td>
+                                <td>{{ $revenue->net_profit }}</td>
+                                <td>{{ $revenue->net_profit }}</td>
+                                <td>{{ $revenue->net_profit }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -109,19 +109,19 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Periode</th>
+                            <th>Period</th>
                             <th>2024</th>
                             <th>2023</th>
                             <th>2022</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($company['financialPositionData']['asset'] as $period => $data)
+                        @foreach ($company->financialPositions as $position)
                             <tr>
-                                <td>{{ $period }}</td>
-                                <td>{{ $data['2024'] }}</td>
-                                <td>{{ $data['2023'] }}</td>
-                                <td>{{ $data['2022'] }}</td>
+                                <td>{{ $position->quarter }}</td>
+                                <td>{{ $position->asset }}</td>
+                                <td>{{ $position->asset }}</td>
+                                <td>{{ $position->asset }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -134,19 +134,19 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Periode</th>
+                            <th>Period</th>
                             <th>2024</th>
                             <th>2023</th>
                             <th>2022</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($company['financialPositionData']['liability'] as $period => $data)
+                        @foreach ($company->financialPositions as $position)
                             <tr>
-                                <td>{{ $period }}</td>
-                                <td>{{ $data['2024'] }}</td>
-                                <td>{{ $data['2023'] }}</td>
-                                <td>{{ $data['2022'] }}</td>
+                                <td>{{ $position->quarter }}</td>
+                                <td>{{ $position->liability }}</td>
+                                <td>{{ $position->liability }}</td>
+                                <td>{{ $position->liability }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -159,19 +159,19 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Periode</th>
+                            <th>Period</th>
                             <th>2024</th>
                             <th>2023</th>
                             <th>2022</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($company['financialPositionData']['equity'] as $period => $data)
+                        @foreach ($company->financialPositions as $position)
                             <tr>
-                                <td>{{ $period }}</td>
-                                <td>{{ $data['2024'] }}</td>
-                                <td>{{ $data['2023'] }}</td>
-                                <td>{{ $data['2022'] }}</td>
+                                <td>{{ $position->quarter }}</td>
+                                <td>{{ $position->equity }}</td>
+                                <td>{{ $position->equity }}</td>
+                                <td>{{ $position->equity }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -190,19 +190,19 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Periode</th>
+                            <th>Period</th>
                             <th>2024</th>
                             <th>2023</th>
                             <th>2022</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($company['dividendData']['dividendPerSheet'] as $period => $data)
+                        @foreach ($company->dividends as $dividend)
                             <tr>
-                                <td>{{ $period }}</td>
-                                <td>{{ $data['2024'] }}</td>
-                                <td>{{ $data['2023'] }}</td>
-                                <td>{{ $data['2022'] }}</td>
+                                <td>{{ $dividend->quarter }}</td>
+                                <td>{{ $dividend->dividend_per_sheet }}</td>
+                                <td>{{ $dividend->dividend_per_sheet }}</td>
+                                <td>{{ $dividend->dividend_per_sheet }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -215,19 +215,19 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Periode</th>
+                            <th>Period</th>
                             <th>2024</th>
                             <th>2023</th>
                             <th>2022</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($company['dividendData']['yield'] as $period => $data)
+                        @foreach ($company->dividends as $dividend)
                             <tr>
-                                <td>{{ $period }}</td>
-                                <td>{{ $data['2024'] }}</td>
-                                <td>{{ $data['2023'] }}</td>
-                                <td>{{ $data['2022'] }}</td>
+                                <td>{{ $dividend->quarter }}</td>
+                                <td>{{ $dividend->yield }}</td>
+                                <td>{{ $dividend->yield }}</td>
+                                <td>{{ $dividend->yield }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -246,19 +246,19 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Periode</th>
+                            <th>Period</th>
                             <th>2024</th>
                             <th>2023</th>
                             <th>2022</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($company['profitabilityRatioData']['ROE'] as $period => $data)
+                        @foreach ($company->profitabilityRatios as $ratio)
                             <tr>
-                                <td>{{ $period }}</td>
-                                <td>{{ $data['2024'] }}</td>
-                                <td>{{ $data['2023'] }}</td>
-                                <td>{{ $data['2022'] }}</td>
+                                <td>{{ $ratio->quarter }}</td>
+                                <td>{{ $ratio->ROE }}</td>
+                                <td>{{ $ratio->ROE }}</td>
+                                <td>{{ $ratio->ROE }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -271,19 +271,19 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Periode</th>
+                            <th>Period</th>
                             <th>2024</th>
                             <th>2023</th>
                             <th>2022</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($company['profitabilityRatioData']['GPM'] as $period => $data)
+                        @foreach ($company->profitabilityRatios as $ratio)
                             <tr>
-                                <td>{{ $period }}</td>
-                                <td>{{ $data['2024'] }}</td>
-                                <td>{{ $data['2023'] }}</td>
-                                <td>{{ $data['2022'] }}</td>
+                                <td>{{ $ratio->quarter }}</td>
+                                <td>{{ $ratio->GPM }}</td>
+                                <td>{{ $ratio->GPM }}</td>
+                                <td>{{ $ratio->GPM }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -296,19 +296,19 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Periode</th>
+                            <th>Period</th>
                             <th>2024</th>
                             <th>2023</th>
                             <th>2022</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($company['profitabilityRatioData']['NPM'] as $period => $data)
+                        @foreach ($company->profitabilityRatios as $ratio)
                             <tr>
-                                <td>{{ $period }}</td>
-                                <td>{{ $data['2024'] }}</td>
-                                <td>{{ $data['2023'] }}</td>
-                                <td>{{ $data['2022'] }}</td>
+                                <td>{{ $ratio->quarter }}</td>
+                                <td>{{ $ratio->NPM }}</td>
+                                <td>{{ $ratio->NPM }}</td>
+                                <td>{{ $ratio->NPM }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -327,19 +327,19 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Periode</th>
+                            <th>Period</th>
                             <th>2024</th>
                             <th>2023</th>
                             <th>2022</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($company['relativeRatioData']['EPS'] as $period => $data)
+                        @foreach ($company->relativeRatios as $ratio)
                             <tr>
-                                <td>{{ $period }}</td>
-                                <td>{{ $data['2024'] }}</td>
-                                <td>{{ $data['2023'] }}</td>
-                                <td>{{ $data['2022'] }}</td>
+                                <td>{{ $ratio->quarter }}</td>
+                                <td>{{ $ratio->EPS }}</td>
+                                <td>{{ $ratio->EPS }}</td>
+                                <td>{{ $ratio->EPS }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -352,19 +352,19 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Periode</th>
+                            <th>Period</th>
                             <th>2024</th>
                             <th>2023</th>
                             <th>2022</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($company['relativeRatioData']['PER'] as $period => $data)
+                        @foreach ($company->relativeRatios as $ratio)
                             <tr>
-                                <td>{{ $period }}</td>
-                                <td>{{ $data['2024'] }}</td>
-                                <td>{{ $data['2023'] }}</td>
-                                <td>{{ $data['2022'] }}</td>
+                                <td>{{ $ratio->quarter }}</td>
+                                <td>{{ $ratio->PER }}</td>
+                                <td>{{ $ratio->PER }}</td>
+                                <td>{{ $ratio->PER }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -377,19 +377,19 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Periode</th>
+                            <th>Period</th>
                             <th>2024</th>
                             <th>2023</th>
                             <th>2022</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($company['relativeRatioData']['BVPS'] as $period => $data)
+                        @foreach ($company->relativeRatios as $ratio)
                             <tr>
-                                <td>{{ $period }}</td>
-                                <td>{{ $data['2024'] }}</td>
-                                <td>{{ $data['2023'] }}</td>
-                                <td>{{ $data['2022'] }}</td>
+                                <td>{{ $ratio->quarter }}</td>
+                                <td>{{ $ratio->BVPS }}</td>
+                                <td>{{ $ratio->BVPS }}</td>
+                                <td>{{ $ratio->BVPS }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -402,19 +402,19 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Periode</th>
+                            <th>Period</th>
                             <th>2024</th>
                             <th>2023</th>
                             <th>2022</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($company['relativeRatioData']['PBV'] as $period => $data)
+                        @foreach ($company->relativeRatios as $ratio)
                             <tr>
-                                <td>{{ $period }}</td>
-                                <td>{{ $data['2024'] }}</td>
-                                <td>{{ $data['2023'] }}</td>
-                                <td>{{ $data['2022'] }}</td>
+                                <td>{{ $ratio->quarter }}</td>
+                                <td>{{ $ratio->PBV }}</td>
+                                <td>{{ $ratio->PBV }}</td>
+                                <td>{{ $ratio->PBV }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -433,19 +433,19 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Periode</th>
+                            <th>Period</th>
                             <th>2024</th>
                             <th>2023</th>
                             <th>2022</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($company['liquidityRatioData']['DAR'] as $period => $data)
+                        @foreach ($company->liquidityRatios as $ratio)
                             <tr>
-                                <td>{{ $period }}</td>
-                                <td>{{ $data['2024'] }}</td>
-                                <td>{{ $data['2023'] }}</td>
-                                <td>{{ $data['2022'] }}</td>
+                                <td>{{ $ratio->quarter }}</td>
+                                <td>{{ $ratio->DAR }}</td>
+                                <td>{{ $ratio->DAR }}</td>
+                                <td>{{ $ratio->DAR }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -458,19 +458,19 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Periode</th>
+                            <th>Period</th>
                             <th>2024</th>
                             <th>2023</th>
                             <th>2022</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($company['liquidityRatioData']['DER'] as $period => $data)
+                        @foreach ($company->liquidityRatios as $ratio)
                             <tr>
-                                <td>{{ $period }}</td>
-                                <td>{{ $data['2024'] }}</td>
-                                <td>{{ $data['2023'] }}</td>
-                                <td>{{ $data['2022'] }}</td>
+                                <td>{{ $ratio->quarter }}</td>
+                                <td>{{ $ratio->DER }}</td>
+                                <td>{{ $ratio->DER }}</td>
+                                <td>{{ $ratio->DER }}</td>
                             </tr>
                         @endforeach
                     </tbody>

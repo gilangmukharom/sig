@@ -14,88 +14,103 @@ class KeyRatio extends Component
 
     protected $listeners = ['companyChanged'];
 
-    public function companyChanged($companyData)
+    public function companyChanged($company)
     {
-        $this->profitData = [
-            ['quarter' => 'Quartal 4', 'value' => floatval(str_replace([' B', 'B'], '', $companyData['revenueData']['revenue']['Q4']['2024']))],
-            ['quarter' => 'Quartal 3', 'value' => floatval(str_replace([' B', 'B'], '', $companyData['revenueData']['revenue']['Q3']['2024']))],
-            ['quarter' => 'Quartal 2', 'value' => floatval(str_replace([' B', 'B'], '', $companyData['revenueData']['revenue']['Q2']['2024']))],
-            ['quarter' => 'Quartal 1', 'value' => floatval(str_replace([' B', 'B'], '', $companyData['revenueData']['revenue']['Q1']['2024']))],
-        ];
+        // Jika $company merupakan array, ubah menjadi model Eloquent
+        if (is_array($company)) {
+            $company = \App\Models\Company::with([
+                'revenues',
+                'financialPositions',
+                'dividends'
+            ])->findOrFail($company['id']);
+        }
 
+        // Ambil data revenue per quarter
+        $this->profitData = $company->revenues->map(function ($revenue) {
+            return [
+                'quarter' => 'Quarter ' . $revenue->quarter,
+                'value' => floatval(str_replace([' B', 'B'], '', $revenue->revenue))
+            ];
+        })->toArray();
+
+        // Ambil data price
         $this->priceData = [
-            ['quarter' => 'Quartal 4', 'value' => floatval(str_replace([' B', 'B'], '', $companyData['price']))],
-            ['quarter' => 'Quartal 3', 'value' => floatval(str_replace([' B', 'B'], '', $companyData['price']))],
-            ['quarter' => 'Quartal 2', 'value' => floatval(str_replace([' B', 'B'], '', $companyData['price']))],
-            ['quarter' => 'Quartal 1', 'value' => floatval(str_replace([' B', 'B'], '', $companyData['price']))],
+            ['quarter' => 'Quarter 4', 'value' => floatval(str_replace([' B', 'B'], '', $company->price))],
+            ['quarter' => 'Quarter 3', 'value' => floatval(str_replace([' B', 'B'], '', $company->price))],
+            ['quarter' => 'Quarter 2', 'value' => floatval(str_replace([' B', 'B'], '', $company->price))],
+            ['quarter' => 'Quarter 1', 'value' => floatval(str_replace([' B', 'B'], '', $company->price))],
         ];
 
+        // Ambil data income statement (Revenue, Gross Profit, Net Profit)
         $this->incomeStatementData = [
-            'categories' => array_keys($companyData['revenueData']['revenue']),
+            'categories' => $company->revenues->pluck('quarter')->toArray(),
             'series' => [
                 [
                     'name' => 'Revenue',
-                    'data' => array_map(function ($val) {
-                        return floatval(str_replace(' B', '', $val['2024']));
-                    }, $companyData['revenueData']['revenue']),
+                    'data' => $company->revenues->pluck('revenue')->map(function ($value) {
+                        return floatval(str_replace(' B', '', $value));
+                    })->toArray(),
                 ],
                 [
                     'name' => 'Gross Profit',
-                    'data' => array_map(function ($val) {
-                        return floatval(str_replace(' B', '', $val['2024']));
-                    }, $companyData['revenueData']['grossProfit']),
+                    'data' => $company->revenues->pluck('gross_profit')->map(function ($value) {
+                        return floatval(str_replace(' B', '', $value));
+                    })->toArray(),
                 ],
                 [
                     'name' => 'Net Profit',
-                    'data' => array_map(function ($val) {
-                        return floatval(str_replace(' B', '', $val['2024']));
-                    }, $companyData['revenueData']['netProfit']),
+                    'data' => $company->revenues->pluck('net_profit')->map(function ($value) {
+                        return floatval(str_replace(' B', '', $value));
+                    })->toArray(),
                 ],
             ],
         ];
 
+        // Ambil data financial position (Asset, Liability, Equity)
         $this->financialPositionData = [
-            'categories' => array_keys($companyData['financialPositionData']['asset']),
+            'categories' => $company->financialPositions->pluck('quarter')->toArray(),
             'series' => [
                 [
                     'name' => 'Asset',
-                    'data' => array_map(function ($val) {
-                        return floatval(str_replace(' B', '', $val['2024']));
-                    }, $companyData['financialPositionData']['asset']),
+                    'data' => $company->financialPositions->pluck('asset')->map(function ($value) {
+                        return floatval(str_replace(' B', '', $value));
+                    })->toArray(),
                 ],
                 [
                     'name' => 'Liability',
-                    'data' => array_map(function ($val) {
-                        return floatval(str_replace(' B', '', $val['2024']));
-                    }, $companyData['financialPositionData']['liability']),
+                    'data' => $company->financialPositions->pluck('liability')->map(function ($value) {
+                        return floatval(str_replace(' B', '', $value));
+                    })->toArray(),
                 ],
                 [
                     'name' => 'Equity',
-                    'data' => array_map(function ($val) {
-                        return floatval(str_replace(' B', '', $val['2024']));
-                    }, $companyData['financialPositionData']['equity']),
+                    'data' => $company->financialPositions->pluck('equity')->map(function ($value) {
+                        return floatval(str_replace(' B', '', $value));
+                    })->toArray(),
                 ],
             ],
         ];
 
+        // Ambil data dividend
         $this->dividendData = [
-            'categories' => array_keys($companyData['dividendData']['dividendPerSheet']),
+            'categories' => $company->dividends->pluck('quarter')->toArray(),
             'series' => [
                 [
                     'name' => 'Dividend Per Sheet',
-                    'data' => array_map(function ($val) {
-                        return floatval(str_replace(' B', '', $val['2024']));
-                    }, $companyData['dividendData']['dividendPerSheet']),
+                    'data' => $company->dividends->pluck('dividend_per_sheet')->map(function ($value) {
+                        return floatval(str_replace(' B', '', $value));
+                    })->toArray(),
                 ],
                 [
                     'name' => 'Yield',
-                    'data' => array_map(function ($val) {
-                        return floatval(str_replace(' B', '', $val['2024']));
-                    }, $companyData['dividendData']['yield']),
+                    'data' => $company->dividends->pluck('yield')->map(function ($value) {
+                        return floatval(str_replace(' %', '', $value));
+                    })->toArray(),
                 ],
             ],
         ];
 
+        // Dispatch event untuk update chart di frontend
         $this->dispatchBrowserEvent('update-chart', [
             'incomeStatementData' => $this->incomeStatementData,
             'financialPositionData' => $this->financialPositionData,

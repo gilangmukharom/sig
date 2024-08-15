@@ -19,6 +19,9 @@ class AnalyzeController extends Controller
     }
     public function signin()
     {
+        if (FacadesAuth::check()) {
+            return redirect()->route('dashboard-core');
+        }
         return view('auth.analyze-login');
     }
 
@@ -37,15 +40,21 @@ class AnalyzeController extends Controller
                 return redirect()->route('verification.notice')->withErrors('Please verify your email before accessing the dashboard.');
             }
             FacadesAuth::login($user);
-            return redirect()->route('dashboard-core');
+            if ($user->role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            } else {
+                return redirect()->route('dashboard-core');
+            }
         }
 
-        return redirect()->back()->withErrors('Invalid credentials');
+        return redirect()->back()->with('error', 'Login Failed!\nWrong username / password');
     }
-
 
     public function signup()
     {
+        if (FacadesAuth::check()) {
+            return redirect()->route('dashboard-core');
+        }
         return view('auth.analyze-signup');
     }
 
@@ -73,11 +82,11 @@ class AnalyzeController extends Controller
             'user_type' => 'free',
         ]);
         $verificationUrl = URL::temporarySignedRoute(
-            'verification.verify', // Route name untuk verifikasi
-            now()->addMinutes(60), // Waktu kedaluwarsa URL
+            'verification.verify',
+            now()->addMinutes(60),
             [
                 'id' => $userAnalyze->id,
-                'hash' => sha1($userAnalyze->email), // Hash dari email pengguna
+                'hash' => sha1($userAnalyze->email),
             ]
         );
 
@@ -89,23 +98,27 @@ class AnalyzeController extends Controller
     public function resendVerificationEmail(Request $request)
     {
         $user = $request->user();
-
+    
         if ($user->hasVerifiedEmail()) {
             return redirect()->route('dashboard-core')->with('status', 'Your email is already verified.');
         }
 
-        $verificationUrl = URL::temporarySignedRoute(
-            'verification.verify',
-            now()->addMinutes(60),
-            [
-                'id' => $user->id,
-                'hash' => sha1($user->email),
-            ]
-        );
+        try {
+            $verificationUrl = URL::temporarySignedRoute(
+                'verification.verify',
+                now()->addMinutes(60),
+                [
+                    'id' => $user->id,
+                    'hash' => sha1($user->email),
+                ]
+            );
 
-        Mail::to($user->email)->send(new RegisterMail($user, $verificationUrl));
+            Mail::to($user->email)->send(new RegisterMail($user, $verificationUrl));
 
-        return redirect()->route('verification.notice')->with('status', 'Verification link sent!');
+            return redirect()->back()->with('success', 'Verification link sent!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to send verification email. Please try again later.');
+        }
     }
 
     public function logout()
@@ -149,7 +162,6 @@ class AnalyzeController extends Controller
         if ($request->user()->hasVerifiedEmail()) {
             return redirect()->route('dashboard-core');
         }
-
         $request->fulfill();
 
         return redirect()->route('dashboard-core')->with('status', 'Your email address has been verified.');

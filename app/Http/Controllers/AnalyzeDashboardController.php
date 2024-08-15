@@ -17,4 +17,9 @@ class AnalyzeDashboardController extends Controller
     {
         return view('analyze.settings', ['title' => 'Settings']);
     }
+
+    public function profileUser()
+    {
+        return view('analyze.profile', ['title' => 'Profile']);
+    }
 }
