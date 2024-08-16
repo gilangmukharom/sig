@@ -15,7 +15,7 @@
             <a class="nav-link" href="#"><i class="primary-color-text bi-gear-fill"></i></a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="logout">Logout</a>
+            <a class="nav-link" href="{{ route('logout') }}"><i class="primary-color-text bi-box-arrow-right"></i></a>
         </li>
     </ul>
 </div>

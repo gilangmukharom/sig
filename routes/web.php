@@ -28,6 +28,8 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::get('/dashboard-core', [AnalyzeDashboardController::class, 'index'])->name('dashboard-core');
     Route::get('/setting', [AnalyzeDashboardController::class, 'setting'])->name('setting');
     Route::get('/profile-user', [AnalyzeDashboardController::class, 'profileUser'])->name('profile-user');
+    Route::put('/profile-user', [AnalyzeDashboardController::class, 'updateProfile'])->name('updateProfile');
+
 });
 Route::get('/signin', [AnalyzeController::class, 'signin'])->name('signin');
 Route::post('/signin', [AnalyzeController::class, 'login'])->name('signin');

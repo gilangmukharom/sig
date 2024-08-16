@@ -29,6 +29,7 @@ class UserAnalyze extends Authenticatable implements MustVerifyEmailContract
         'role',
         'email_verified_at',
         'user_type',
+        'profile_image',
     ];
 
     /**
