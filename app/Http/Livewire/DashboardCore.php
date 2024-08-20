@@ -8,7 +8,7 @@ use App\Models\Company;
 class DashboardCore extends Component
 {
     public $activeTab = 'general-information';
-    public $selectedCompany = 'ASII'; // Default ticker value
+    public $selectedCompany = 'ASII';
     public $incomeStatementData = [];
     public $financialPositionData = [];
     public $dividendData = [];

@@ -6,10 +6,11 @@
                 class="rounded-circle border border-dark" width="40" height="40">
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="/payment"><i class="primary-color-text bi-plus-lg"></i></a>
+            <a class="nav-link" href="{{ route('dashboard-core') }}"><i
+                    class="primary-color-text bi-bar-chart-fill"></i></a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="#"><i class="primary-color-text bi-bar-chart-fill"></i></a>
+            <a class="nav-link" href="/payment"><i class="primary-color-text bi-plus-lg"></i></a>
         </li>
         <li class="nav-item">
             <a class="nav-link" href="#"><i class="primary-color-text bi-gear-fill"></i></a>

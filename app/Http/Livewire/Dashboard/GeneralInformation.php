@@ -16,6 +16,7 @@ class GeneralInformation extends Component
     public $profitabilityRatioData = [];
     public $relativeRatioData = [];
     public $liquidityRatioData = [];
+    public $years = [];
 
     protected $listeners = ['companyChanged' => 'updateCompany'];
 
@@ -32,89 +33,99 @@ class GeneralInformation extends Component
 
     public function updateCompany($company)
     {
-        // Periksa jika $company adalah array
         if (is_array($company)) {
-            // Mengambil kembali data perusahaan dari database dengan ID yang diterima
             $company = Company::with(['revenues', 'financialPositions', 'dividends', 'profitabilityRatios', 'relativeRatios', 'liquidityRatios'])->findOrFail($company['id']);
         }
-
+    
         $this->company = $company;
 
-        // Mengisi data dari relasi yang sudah dimuat di model Company
-        $this->revenueData = $company->revenues->map(function ($revenue) {
-            return [
-                'year' => $revenue->year,
-                'quarter' => $revenue->quarter,
-                'revenue' => $revenue->revenue,
-            ];
-        })->toArray();
+        $currentYear = now()->year;
+        $threeYearsAgo = $currentYear - 2;
 
-        $this->grossProfitData = $company->revenues->map(function ($revenue) {
+        // Mengambil tahun-tahun yang tersedia secara dinamis
+        $years = $company->dividends
+            ->where('year', '>=', $threeYearsAgo)
+            ->pluck('year')
+            ->unique()
+            ->sortDesc()
+            ->values()
+            ->all();
+
+        $this->years = $years;
+
+        $this->revenueData = $company->revenues
+            ->where('year', '>=', $threeYearsAgo)
+            ->groupBy('quarter')
+            ->map(function ($revenues) use ($years) {
+                return $revenues->pluck('revenue', 'year')->only($years);
+            });
+
+        $this->grossProfitData = $company->revenues
+            ->where('year', '>=', $threeYearsAgo)
+            ->groupBy('quarter')
+            ->map(function ($revenues) use ($years) {
+                return $revenues->pluck('gross_profit', 'year')->only($years);
+            });
+
+        $this->netProfitData = $company->revenues
+            ->where('year', '>=', $threeYearsAgo)
+            ->groupBy('quarter')
+            ->map(function ($revenues) use ($years) {
+                return $revenues->pluck('net_profit', 'year')->only($years);
+            });
+
+        $this->financialPositionData = $company->financialPositions
+            ->where('year', '>=', $threeYearsAgo)
+            ->groupBy('quarter')
+            ->map(function ($positions) use ($years) {
                 return [
-                    'year' => $revenue->year,
-                    'quarter' => $revenue->quarter,
-                    'gross_profit' => $revenue->gross_profit,
-                ];
-            })->toArray();
-
-        $this->netProfitData = $company->revenues->map(function ($revenue) {
-            return [
-                'year' => $revenue->year,
-                'quarter' => $revenue->quarter,
-                'net_profit' => $revenue->net_profit,
+                'asset' => $positions->pluck('asset', 'year')->only($years),
+                'liability' => $positions->pluck('liability', 'year')->only($years),
+                'equity' => $positions->pluck('equity', 'year')->only($years),
             ];
-        })->toArray();
+            });
 
-        $this->financialPositionData = $company->financialPositions->map(function ($position) {
-            return [
-                'year' => $position->year,
-                'quarter' => $position->quarter,
-                'asset' => $position->asset,
-                'liability' => $position->liability,
-                'equity' => $position->equity,
-            ];
-        })->toArray();
+        $this->dividendData = $company->dividends
+            ->where('year', '>=', $threeYearsAgo)
+            ->groupBy('quarter')
+            ->map(function ($dividends) use ($years) {
+                return $dividends->pluck('dividend_per_sheet', 'year')->only($years);
+            });
 
-        $this->dividendData = $company->dividends->map(function ($dividend) {
+        $this->profitabilityRatioData = $company->profitabilityRatios
+            ->where('year', '>=', $threeYearsAgo)
+            ->groupBy('quarter')
+            ->map(function ($ratios) use ($years) {
                 return [
-                    'year' => $dividend->year,
-                    'quarter' => $dividend->quarter,
-                    'dividend_per_sheet' => $dividend->dividend_per_sheet,
-                    'yield' => $dividend->yield,
-                ];
-            })->toArray();
-
-        $this->profitabilityRatioData = $company->profitabilityRatios->map(function ($ratio) {
-            return [
-                'year' => $ratio->year,
-                'quarter' => $ratio->quarter,
-                'ROE' => $ratio->ROE,
-                'GPM' => $ratio->GPM,
-                'NPM' => $ratio->NPM,
+                'ROE' => $ratios->pluck('ROE', 'year')->only($years),
+                'GPM' => $ratios->pluck('GPM', 'year')->only($years),
+                'NPM' => $ratios->pluck('NPM', 'year')->only($years),
             ];
-        })->toArray();
+            });
 
-        $this->relativeRatioData = $company->relativeRatios->map(function ($ratio) {
-            return [
-                'year' => $ratio->year,
-                'quarter' => $ratio->quarter,
-                'EPS' => $ratio->EPS,
-                'PER' => $ratio->PER,
-                'BVPS' => $ratio->BVPS,
-                'PBV' => $ratio->PBV,
+        $this->relativeRatioData = $company->relativeRatios
+            ->where('year', '>=', $threeYearsAgo)
+            ->groupBy('quarter')
+            ->map(function ($ratios) use ($years) {
+                return [
+                'EPS' => $ratios->pluck('EPS', 'year')->only($years),
+                'PER' => $ratios->pluck('PER', 'year')->only($years),
+                'BVPS' => $ratios->pluck('BVPS', 'year')->only($years),
+                'PBV' => $ratios->pluck('PBV', 'year')->only($years),
             ];
-        })->toArray();
+            });
 
-        $this->liquidityRatioData = $company->liquidityRatios->map(function ($ratio) {
-            return [
-                'year' => $ratio->year,
-                'quarter' => $ratio->quarter,
-                'DAR' => $ratio->DAR,
-                'DER' => $ratio->DER,
+        $this->liquidityRatioData = $company->liquidityRatios
+            ->where('year', '>=', $threeYearsAgo)
+            ->groupBy('quarter')
+            ->map(function ($ratios) use ($years) {
+                return [
+                'DAR' => $ratios->pluck('DAR', 'year')->only($years),
+                'DER' => $ratios->pluck('DER', 'year')->only($years),
             ];
-        })->toArray();
-    }
-
+        });
+    }    
+    
     public function render()
     {
         return view('livewire.dashboard.general-information', [
@@ -127,6 +138,7 @@ class GeneralInformation extends Component
             'profitabilityRatioData' => $this->profitabilityRatioData,
             'relativeRatioData' => $this->relativeRatioData,
             'liquidityRatioData' => $this->liquidityRatioData,
+            'years' => $this->years,
         ]);
     }
 }
