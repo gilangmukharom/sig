@@ -8,10 +8,13 @@ use Illuminate\Support\Facades\Auth as FacadesAuth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use App\Mail\RegisterMail;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 
 class AnalyzeController extends Controller
 {
@@ -175,6 +178,55 @@ class AnalyzeController extends Controller
         return redirect()->route('dashboard-core')->with('status', 'Your email address has been verified.');
     }
 
+    public function forgotPassword()
+    {
+        return view('auth.analyze-forgot-password');
+    }
+
+    public function sendResetLink(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+
+        $status = Password::sendResetLink(
+            $request->only('email')
+        );
+
+        return $status === Password::RESET_LINK_SENT
+            ? back()->with(['status' => __($status)])
+            : back()->withErrors(['email' => __($status)]);
+    }
+
+    public function showResetForm($token)
+    {
+        return view('auth.analyze-reset-password', ['token' => $token]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|min:8|confirmed',
+        ]);
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password)
+                ])->setRememberToken(Str::random(60));
+
+                $user->save();
+
+                event(new PasswordReset($user));
+            }
+        );
+
+        return $status === Password::PASSWORD_RESET
+            ? redirect()->route('signin')->with('status', __($status))
+            : back()->withErrors(['email' => [__($status)]]);
+    }
+
     public function paymentAndBilling()
     {
         return view('analyze.paymentAndBilling', ['title' => 'Payment and Billing']);
@@ -187,7 +239,7 @@ class AnalyzeController extends Controller
 
     public function profileUser()
     {
-        $user = FacadesAuth::user(); // Ambil data user yang sedang login
+        $user = FacadesAuth::user();
         return view('analyze.profile', [
             'title' => 'Profile',
             'user' => $user,
@@ -196,7 +248,6 @@ class AnalyzeController extends Controller
 
     public function updateProfile(Request $request)
     {
-        // Validasi data yang masuk
         $request->validate([
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:user_analyze,username,' . FacadesAuth::id(),
@@ -207,26 +258,20 @@ class AnalyzeController extends Controller
             'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // Ambil user yang sedang login
         $user = FacadesAuth::user();
 
-        // Handle file upload
         if ($request->hasFile('profile_image')) {
-            // Hapus gambar lama jika ada
             if ($user->profile_image) {
                 Storage::disk('public')->delete($user->profile_image);
             }
 
-            // Simpan gambar baru
             $path = $request->file('profile_image')->store('profile_images', 'public');
 
-            // Update kolom profile_image di database
             DB::table('user_analyze')
             ->where('id', FacadesAuth::id())
                 ->update(['profile_image' => $path]);
         }
 
-        // Update data user lainnya menggunakan Query Builder
         DB::table('user_analyze')
         ->where('id', FacadesAuth::id())
             ->update([
@@ -238,7 +283,6 @@ class AnalyzeController extends Controller
                 'work' => $request->work,
             ]);
 
-        // Redirect kembali ke halaman profil dengan pesan sukses
         return redirect()->route('profile-user')->with('status', 'Profile updated successfully.');
     }
 }

@@ -11,106 +11,147 @@ class KeyStatics extends Component
     public $incomeStatementData = [];
     public $financialPositionData = [];
     public $dividendData = [];
+    public $account = 'All';
+    public $timeframe = '3 Years'; // Default timeframe
 
     protected $listeners = ['companyChanged'];
 
+    public function updatedAccount()
+    {
+        // Menggunakan data perusahaan terakhir yang tersedia
+        $company = \App\Models\Company::with(['revenues', 'financialPositions', 'dividends'])->first();
+
+        // Panggil companyChanged untuk memperbarui data
+        $this->companyChanged($company);
+    }
+
+    public function updatedTimeframe()
+    {
+        $this->updatedAccount(); // Atau panggil metode serupa untuk Timeframe
+    }
+
+    public function updatedGraphic()
+    {
+        $this->updatedAccount(); // Atau panggil metode serupa untuk Graphic
+    }
+
     public function companyChanged($company)
     {
-        // Jika $company merupakan array, ubah menjadi model Eloquent
         if (is_array($company)) {
-            $company = \App\Models\Company::with([
-                'revenues',
-                'financialPositions',
-                'dividends'
-            ])->findOrFail($company['id']);
+            $company = \App\Models\Company::with(['revenues', 'financialPositions', 'dividends'])
+                ->findOrFail($company['id']);
         }
 
-        // Ambil data revenue per quarter
-        $this->profitData = $company->revenues->map(function ($revenue) {
-            return [
-                'quarter' => 'Quarter ' . $revenue->quarter,
-                'value' => floatval(str_replace([' B', 'B'], '', $revenue->revenue))
+        $currentYear = now()->year;
+        $yearsAgo = 0;
+
+        if ($this->timeframe === '3 Years') {
+            $yearsAgo = 3;
+        } elseif ($this->timeframe === '5 Years') {
+            $yearsAgo = 5;
+        } elseif ($this->timeframe === '10 Years') {
+            $yearsAgo = 10;
+        }
+
+        $startYear = $currentYear - $yearsAgo;
+
+        // Reset data sebelum mengisi ulang sesuai filter
+        $this->incomeStatementData = [];
+        $this->financialPositionData = [];
+        $this->dividendData = [];
+
+        // Filter dan sorting berdasarkan tahun terbaru
+        $filteredRevenues = $company->revenues
+            ->sortByDesc('year')
+            ->filter(function ($revenue) use ($startYear) {
+                return $revenue->year >= $startYear;
+            });
+
+        $filteredFinancialPositions = $company->financialPositions
+            ->sortByDesc('year')
+            ->filter(function ($position) use ($startYear) {
+                return $position->year >= $startYear;
+            });
+
+        $filteredDividends = $company->dividends
+            ->sortByDesc('year')
+            ->filter(function ($dividend) use ($startYear) {
+                return $dividend->year >= $startYear;
+            });
+
+        // Kondisi untuk setiap account type dan update data untuk chart terkait
+        if ($this->account === 'IncomeStatement' || $this->account === 'All') {
+            $this->incomeStatementData = [
+                'categories' => $filteredRevenues->pluck('quarter')->toArray(),
+                'series' => [
+                    [
+                        'name' => 'Revenue',
+                        'data' => $filteredRevenues->pluck('revenue')->map(function ($value) {
+                            return floatval(str_replace(' B', '', $value));
+                        })->toArray(),
+                    ],
+                    [
+                        'name' => 'Gross Profit',
+                        'data' => $filteredRevenues->pluck('gross_profit')->map(function ($value) {
+                            return floatval(str_replace(' B', '', $value));
+                        })->toArray(),
+                    ],
+                    [
+                        'name' => 'Net Profit',
+                        'data' => $filteredRevenues->pluck('net_profit')->map(function ($value) {
+                            return floatval(str_replace(' B', '', $value));
+                        })->toArray(),
+                    ],
+                ],
             ];
-        })->toArray();
+        }
 
-        // Ambil data price
-        $this->priceData = [
-            ['quarter' => 'Quarter 4', 'value' => floatval(str_replace([' B', 'B'], '', $company->price))],
-            ['quarter' => 'Quarter 3', 'value' => floatval(str_replace([' B', 'B'], '', $company->price))],
-            ['quarter' => 'Quarter 2', 'value' => floatval(str_replace([' B', 'B'], '', $company->price))],
-            ['quarter' => 'Quarter 1', 'value' => floatval(str_replace([' B', 'B'], '', $company->price))],
-        ];
+        if ($this->account === 'FinancialPosition' || $this->account === 'All') {
+            $this->financialPositionData = [
+                'categories' => $filteredFinancialPositions->pluck('quarter')->toArray(),
+                'series' => [
+                    [
+                        'name' => 'Asset',
+                        'data' => $filteredFinancialPositions->pluck('asset')->map(function ($value) {
+                            return floatval(str_replace(' B', '', $value));
+                        })->toArray(),
+                    ],
+                    [
+                        'name' => 'Liability',
+                        'data' => $filteredFinancialPositions->pluck('liability')->map(function ($value) {
+                            return floatval(str_replace(' B', '', $value));
+                        })->toArray(),
+                    ],
+                    [
+                        'name' => 'Equity',
+                        'data' => $filteredFinancialPositions->pluck('equity')->map(function ($value) {
+                            return floatval(str_replace(' B', '', $value));
+                        })->toArray(),
+                    ],
+                ],
+            ];
+        }
 
-        // Ambil data income statement (Revenue, Gross Profit, Net Profit)
-        $this->incomeStatementData = [
-            'categories' => $company->revenues->pluck('quarter')->toArray(),
-            'series' => [
-                [
-                    'name' => 'Revenue',
-                    'data' => $company->revenues->pluck('revenue')->map(function ($value) {
-                        return floatval(str_replace(' B', '', $value));
-                    })->toArray(),
+        if ($this->account === 'Dividend' || $this->account === 'All') {
+            $this->dividendData = [
+                'categories' => $filteredDividends->pluck('quarter')->toArray(),
+                'series' => [
+                    [
+                        'name' => 'Dividend Per Sheet',
+                        'data' => $filteredDividends->pluck('dividend_per_sheet')->map(function ($value) {
+                            return floatval(str_replace(' B', '', $value));
+                        })->toArray(),
+                    ],
+                    [
+                        'name' => 'Yield',
+                        'data' => $filteredDividends->pluck('yield')->map(function ($value) {
+                            return floatval(str_replace(' %', '', $value));
+                        })->toArray(),
+                    ],
                 ],
-                [
-                    'name' => 'Gross Profit',
-                    'data' => $company->revenues->pluck('gross_profit')->map(function ($value) {
-                        return floatval(str_replace(' B', '', $value));
-                    })->toArray(),
-                ],
-                [
-                    'name' => 'Net Profit',
-                    'data' => $company->revenues->pluck('net_profit')->map(function ($value) {
-                        return floatval(str_replace(' B', '', $value));
-                    })->toArray(),
-                ],
-            ],
-        ];
+            ];
+        }
 
-        // Ambil data financial position (Asset, Liability, Equity)
-        $this->financialPositionData = [
-            'categories' => $company->financialPositions->pluck('quarter')->toArray(),
-            'series' => [
-                [
-                    'name' => 'Asset',
-                    'data' => $company->financialPositions->pluck('asset')->map(function ($value) {
-                        return floatval(str_replace(' B', '', $value));
-                    })->toArray(),
-                ],
-                [
-                    'name' => 'Liability',
-                    'data' => $company->financialPositions->pluck('liability')->map(function ($value) {
-                        return floatval(str_replace(' B', '', $value));
-                    })->toArray(),
-                ],
-                [
-                    'name' => 'Equity',
-                    'data' => $company->financialPositions->pluck('equity')->map(function ($value) {
-                        return floatval(str_replace(' B', '', $value));
-                    })->toArray(),
-                ],
-            ],
-        ];
-
-        // Ambil data dividend
-        $this->dividendData = [
-            'categories' => $company->dividends->pluck('quarter')->toArray(),
-            'series' => [
-                [
-                    'name' => 'Dividend Per Sheet',
-                    'data' => $company->dividends->pluck('dividend_per_sheet')->map(function ($value) {
-                        return floatval(str_replace(' B', '', $value));
-                    })->toArray(),
-                ],
-                [
-                    'name' => 'Yield',
-                    'data' => $company->dividends->pluck('yield')->map(function ($value) {
-                        return floatval(str_replace(' %', '', $value));
-                    })->toArray(),
-                ],
-            ],
-        ];
-
-        // Dispatch event untuk update chart di frontend
         $this->dispatchBrowserEvent('update-chart', [
             'incomeStatementData' => $this->incomeStatementData,
             'financialPositionData' => $this->financialPositionData,

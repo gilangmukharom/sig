@@ -41,6 +41,10 @@ Route::get('/email/verify', [AnalyzeController::class, 'verifyEmail'])->name('ve
 Route::get('/email/verifyMail/{id}/{hash}', [AnalyzeController::class, 'verify'])->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
 Route::get('/email/verified', [AnalyzeController::class, 'emailVerified'])->name('email.verified');
 
+Route::get('/forgot-password', [AnalyzeController::class, 'forgotPassword'])->name('password.request');
+Route::post('/forgot-password', [AnalyzeController::class, 'sendResetLink'])->name('password.email');
+Route::get('/reset-password/{token}', [AnalyzeController::class, 'showResetForm'])->name('password.reset');
+Route::post('/reset-password', [AnalyzeController::class, 'resetPassword'])->name('password.update');
 
 Route::prefix('admin_analyze')->group(function () {
     Route::get('index', [AnalyzeDashboardController::class, 'index'])->name('admin_analyze.dashboard');

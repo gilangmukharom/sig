@@ -62,7 +62,7 @@
                     </div>
                 </div>
                 <div class="text-start mt-3">
-                    <button type="submit" class="btn btn-custom border border-2 w-25">Sign up</button>
+                    <button type="submit" class="btn btn-custom2 border border-2 w-25">Sign up</button>
                 </div>
             </div>
         </form>

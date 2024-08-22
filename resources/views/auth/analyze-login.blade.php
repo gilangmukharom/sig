@@ -46,7 +46,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-custom border border-2 w-100 mt-4">Login</button>
+                <button type="submit" class="btn btn-custom2 border border-2 w-100 mt-4">Login</button>
                 <div class="signin-register mt-3 text-center">
                     <p>Don't have account? <a href="{{ route('signup') }}" class="primary-color-text">Register here</a></p>
                 </div>

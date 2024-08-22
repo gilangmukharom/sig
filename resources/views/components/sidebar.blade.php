@@ -16,7 +16,27 @@
             <a class="nav-link" href="#"><i class="primary-color-text bi-gear-fill"></i></a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="{{ route('logout') }}"><i class="primary-color-text bi-box-arrow-right"></i></a>
+            <a class="nav-link" href="#" id="logoutLink"><i class="primary-color-text bi-box-arrow-right"></i></a>
         </li>
     </ul>
 </div>
+
+<script>
+    document.getElementById('logoutLink').addEventListener('click', function(event) {
+        event.preventDefault();
+        
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, logout!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "{{ route('logout') }}";
+            }
+        });
+    });
+</script>

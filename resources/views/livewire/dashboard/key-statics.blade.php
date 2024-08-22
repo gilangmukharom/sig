@@ -4,26 +4,25 @@
             <label for="account" class="form-label">Account:</label>
             <select id="account" class="form-select" wire:model="account">
                 <option value="All">All</option>
-                <option value="Account1">Account1</option>
-                <option value="Account2">Account2</option>
-                <!-- Tambahkan opsi lain sesuai kebutuhan -->
+                <option value="IncomeStatement">Income Statement</option>
+                <option value="FinancialPosition">Financial Position</option>
+                <option value="Dividend">Dividend</option>
             </select>
         </div>
         <div class="col-md-4">
             <label for="timeframe" class="form-label">Timeframe:</label>
             <select id="timeframe" class="form-select" wire:model="timeframe">
                 <option value="All">All</option>
-                <option value="Monthly">Monthly</option>
-                <option value="Quarterly">Quarterly</option>
-                <option value="Annual">Annual</option>
+                <option value="3 Years">3 Years</option>
+                <option value="5 Years">5 Years</option>
+                <option value="10 Years">10 Years</option>
             </select>
         </div>
         <div class="col-md-4">
-            <label for="graphic" class="form-label">Graphic:</label>
+            <label for="graphic" class="form-label">Periode :</label>
             <select id="graphic" class="form-select" wire:model="graphic">
                 <option value="Annual">Annual</option>
-                <option value="Monthly">Monthly</option>
-                <option value="Weekly">Weekly</option>
+                <option value="Monthly">Quarterly</option>
             </select>
         </div>
     </div>
@@ -33,7 +32,7 @@
             <h5>Growth net Profit</h5>
             @foreach ($profitData as $data)
                 <div class="d-flex align-items-center mb-2">
-                    <img src="/path/to/icon.png" alt="icon" class="me-2" style="width: 24px; height: 24px;">
+                    <i class="bi bi-currency-dollar"></i>
                     <div class="flex-grow-1">
                         <div class="d-flex justify-content-between">
                             <span>{{ $data['quarter'] }}</span>
@@ -51,7 +50,7 @@
             <h5>Price</h5>
             @foreach ($priceData as $data)
                 <div class="d-flex align-items-center mb-2">
-                    <img src="/path/to/price-icon.png" alt="icon" class="me-2" style="width: 24px; height: 24px;">
+                    <i class="bi bi-cash"></i>
                     <div class="flex-grow-1">
                         <div class="d-flex justify-content-between">
                             <span>{{ $data['quarter'] }}</span>
@@ -67,41 +66,52 @@
             @endforeach
         </div>
     </div>
-    
+
     <p class="mt-4"><b>Analyze Statistics</b></p>
     <hr>
 
     <div class="row">
-        <div class="col-md-4">
-            <div id="container1"></div>
-        </div>
-        <div class="col-md-4">
-            <div id="container2"></div>
-        </div>
-        <div class="col-md-4">
-            <div id="container3"></div>
-        </div>
+        @if ($account === 'IncomeStatement' || $account === 'All')
+            <!-- Tampilkan Income Statement Chart -->
+            <div class="col-md-4">
+                <div id="incomeStatement"></div>
+            </div>
+        @endif
+
+        @if ($account === 'FinancialPosition' || $account === 'All')
+            <!-- Tampilkan Financial Position Chart -->
+            <div class="col-md-4">
+                <div id="financialPosition"></div>
+            </div>
+        @endif
+
+        @if ($account === 'Dividend' || $account === 'All')
+            <!-- Tampilkan Dividend Chart -->
+            <div class="col-md-4">
+                <div id="dividendData"></div>
+            </div>
+        @endif
     </div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         const incomeStatementData = @json($incomeStatementData);
         const financialPositionData = @json($financialPositionData);
         const dividendData = @json($dividendData);
 
-        loadKeyStatisticsChart('container1', incomeStatementData);
-        loadKeyStatisticsChart('container2', financialPositionData);
-        loadKeyStatisticsChart('container3', dividendData);
+        loadKeyStatisticsChart('incomeStatement', incomeStatementData, 'Income Statement');
+        loadKeyStatisticsChart('financialPosition', financialPositionData, 'Financial Position');
+        loadKeyStatisticsChart('dividendData', dividendData, 'Dividend');
     });
 
     window.addEventListener('update-chart', function(event) {
-        loadKeyStatisticsChart('container1', event.detail.incomeStatementData);
-        loadKeyStatisticsChart('container2', event.detail.financialPositionData);
-        loadKeyStatisticsChart('container3', event.detail.dividendData);
+        loadKeyStatisticsChart('incomeStatement', event.detail.incomeStatementData, 'Income Statement');
+        loadKeyStatisticsChart('financialPosition', event.detail.financialPositionData, 'Financial Position');
+        loadKeyStatisticsChart('dividendData', event.detail.dividendData, 'Dividend');
     });
 
-    function loadKeyStatisticsChart(container, data) {
+    function loadKeyStatisticsChart(container, data, title) {
         if (!data || !data.categories || !data.series) {
             console.error("Invalid data format:", data);
             return;
@@ -123,7 +133,7 @@
                     type: 'column'
                 },
                 title: {
-                    text: 'Data for ' + container
+                    text: title
                 },
                 xAxis: {
                     categories: formattedData.categories
