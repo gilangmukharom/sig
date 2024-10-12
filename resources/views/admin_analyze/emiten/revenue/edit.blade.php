@@ -1,6 +1,7 @@
-@extends('layouts.bootstrap')
+@extends('layouts.navigation-admin')
+@section('title', 'Dashboard')
 
-@section('content')
+@section('contents')
 <div class="container">
     <h1>Edit Revenue Data for {{ $company->name }}</h1>
     <form action="{{ route('admin_analyze.revenue.update', [$company->id, $revenue->id]) }}" method="POST">

@@ -90,6 +90,15 @@
     text-decoration: none;
 }
 
+.form-check-input:checked {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.form-check-input {
+    border-color: #6c757d;
+}
+
 .nav-link:hover::after, .nav-link.active::after {
     content: '';
     position: absolute;
@@ -114,10 +123,23 @@
     min-height: 100vh;
 }
 
+.containerNav-admin {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
 .sidebarNav {
     width: 80px;
     padding: 15px;
     border-right: 1px solid #c7c7c797;
+}
+
+.sidebarNav-admin {
+    min-width: 200px;
+    border-right: 1px solid #c7c7c797;
+    display: flex;
+    flex-wrap: nowrap;
 }
 
 .navbarNav {

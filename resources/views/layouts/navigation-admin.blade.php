@@ -17,11 +17,13 @@
 
 <body>
     @include('components.navbarMobile')
-    <div class="containerNav">
-        @include('components.sidebar-admin')
-        <div class="navbarNav bg-light">
+    <div class="containerNav-admin">
+        <div class="navbarNav">
             @include('components.navbar-admin', ['title' => $title ?? 'Dashboard'])
-            <div class="content m-4">
+        </div>
+        <div class="sidebarNav-admin bg-light">
+            @include('components.sidebar-admin')
+            <div class="content m-4 w-100">
                 @yield('contents')
             </div>
         </div>

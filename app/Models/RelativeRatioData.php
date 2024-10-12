@@ -10,6 +10,15 @@ class RelativeRatioData extends Model
     use HasFactory;
 
     protected $table = 'relative_ratio_data';
+    protected $fillable = [
+        'company_id',
+        'year',
+        'quarter',
+        'EPS',
+        'PER',
+        'BVPS',
+        'PBV',
+    ];
 
     public $timestamps = false;
 

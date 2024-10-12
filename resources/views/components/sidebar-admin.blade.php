@@ -1,83 +1,62 @@
 @extends('layouts.bootstrap')
-<div class="d-flex flex-column flex-shrink-0 p-3 bg-success" style="width: 250px; height: 100vh;">
-    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+@section('content')
+<div class="d-flex flex-column flex-shrink-0 p-3 primary-color" style="width: 250px; min-height: 100vh;">
+    <a href="/" class="d-flex align-items-start mb-5 mb-md-0 me-md-auto text-white text-decoration-none">
         <span class="fs-5">Dashboard</span>
     </a>
-    <button class="btn btn-light mb-3" type="button">
-        + New Item
-    </button>
-    <ul class="nav nav-pills flex-column mb-auto">
+    <ul class="nav nav-pills flex-column gap-2">
         <li class="nav-item">
-            <a href="#" class="nav-link text-white">
-                <i class="bi bi-house-door"></i>
-                Total Emiten
+            <a href="{{ url('/admin_analyze/index') }}" class="nav-link {{ Request::is('admin_analyze/index') ? 'active' : 'text-white' }}">
+                <i class="bi bi-grid"></i>
+                Data Emiten
             </a>
         </li>
+        
+        <!-- Data User -->
         <li>
-            <a href="#" class="nav-link text-white">
-                <i class="bi bi-currency-dollar"></i>
-                Total Income
+            <a href="{{ url('/admin_analyze/user/index') }}" class="nav-link {{ Request::is('admin_analyze/user/index') ? 'active' : 'text-white' }}">
+                <i class="bi bi-person"></i>
+                Data User
             </a>
         </li>
+        
+        <!-- Data Orders -->
         <li>
-            <a href="#" class="nav-link text-white">
-                <i class="bi bi-people"></i>
-                Total User
-            </a>
-        </li>
-        <li>
-            <a href="#" class="nav-link text-white">
+            <a href="#" class="nav-link {{ Request::is('admin_analyze/orders') ? 'active' : 'text-white' }}">
                 <i class="bi bi-cart"></i>
-                Total Orders
+                Data Orders
             </a>
         </li>
+        
         <li>
-            <a class="nav-link text-white dropdown-toggle" data-bs-toggle="collapse" href="#collapseContent"
-                role="button" aria-expanded="false" aria-controls="collapseContent">
-                <i class="bi bi-folder"></i> Content
+            <a class="nav-link text-white dropdown-toggle {{ Request::is('admin_analyze/key_ratio_list') || Request::is('admin_analyze/key_statics') ? '' : 'collapsed' }}" 
+               data-bs-toggle="collapse" href="#collapseEmiten"
+               role="button" aria-expanded="{{ Request::is('admin_analyze/key_ratio_list') || Request::is('admin_analyze/key_statics') ? 'true' : 'false' }}" 
+               aria-controls="collapseEmiten">
+                <i class="bi bi-folder"></i> Emiten
             </a>
-            <div class="collapse ps-3" id="collapseContent">
+            <div class="collapse {{ Request::is('admin_analyze/key_ratio_list') || Request::is('admin_analyze/key_statics') ? 'show' : '' }} ps-3" id="collapseEmiten">
                 <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                    <li><a href="#" class="link-light rounded">Submenu 1</a></li>
-                    <li><a href="#" class="link-light rounded">Submenu 2</a></li>
+                    <li><a href="{{ url('/admin_analyze/key_ratio_list') }}" class="text-decoration-none {{ Request::is('admin_analyze/key_ratio_list') ? 'active' : 'link-light' }} rounded">Key Ratio</a></li>
+                    <li><a href="{{ url('/admin_analyze/key_statics') }}" class="text-decoration-none {{ Request::is('admin_analyze/key_statics') ? 'active' : 'link-light' }} rounded">Key Statics</a></li>
                 </ul>
             </div>
         </li>
+        
+        <!-- Settings -->
         <li>
-            <a class="nav-link text-white dropdown-toggle" data-bs-toggle="collapse" href="#collapseUser" role="button"
-                aria-expanded="false" aria-controls="collapseUser">
-                <i class="bi bi-person"></i> User
+            <a href="#" class="nav-link {{ Request::is('admin_analyze/settings') ? 'active' : 'text-white' }}">
+                <i class="bi bi-gear"></i>
+                Settings
             </a>
-            <div class="collapse ps-3" id="collapseUser">
-                <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                    <li><a href="#" class="link-light rounded">Submenu 1</a></li>
-                    <li><a href="#" class="link-light rounded">Submenu 2</a></li>
-                </ul>
-            </div>
         </li>
+        
         <li>
-            <a class="nav-link text-white dropdown-toggle" data-bs-toggle="collapse" href="#collapseOrder"
-                role="button" aria-expanded="false" aria-controls="collapseOrder">
-                <i class="bi bi-box"></i> Order
+            <a href="#" class="nav-link text-white">
+                <i class="bi bi-box-arrow-right"></i>
+                Keluar
             </a>
-            <div class="collapse ps-3" id="collapseOrder">
-                <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                    <li><a href="#" class="link-light rounded">Submenu 1</a></li>
-                    <li><a href="#" class="link-light rounded">Submenu 2</a></li>
-                </ul>
-            </div>
-        </li>
-        <li>
-            <a class="nav-link text-white dropdown-toggle" data-bs-toggle="collapse" href="#collapsePurchase"
-                role="button" aria-expanded="false" aria-controls="collapsePurchase">
-                <i class="bi bi-cash"></i> Purchase
-            </a>
-            <div class="collapse ps-3" id="collapsePurchase">
-                <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                    <li><a href="#" class="link-light rounded">Submenu 1</a></li>
-                    <li><a href="#" class="link-light rounded">Submenu 2</a></li>
-                </ul>
-            </div>
         </li>
     </ul>
 </div>
+@endsection

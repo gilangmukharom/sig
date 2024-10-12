@@ -10,6 +10,13 @@ class DividendData extends Model
     use HasFactory;
 
     protected $table = 'dividend_data';
+    protected $fillable = [
+        'company_id',
+        'year',
+        'quarter',
+        'dividend_per_sheet',
+        'yield',
+    ];
 
     public $timestamps = false;
 

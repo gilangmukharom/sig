@@ -6,7 +6,6 @@
                 <option value="All">All</option>
                 <option value="Account1">Account1</option>
                 <option value="Account2">Account2</option>
-                <!-- Tambahkan opsi lain sesuai kebutuhan -->
             </select>
         </div>
         <div class="col-md-4">

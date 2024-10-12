@@ -10,6 +10,14 @@ class ProfitabilityRatioData extends Model
     use HasFactory;
 
     protected $table = 'profitability_ratio_data';
+    protected $fillable = [
+        'company_id',
+        'year',
+        'quarter',
+        'ROE',
+        'GPM',
+        'NPM',
+    ];
 
     public $timestamps = false;
 

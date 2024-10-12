@@ -10,6 +10,13 @@ class LiquidityRatioData extends Model
     use HasFactory;
 
     protected $table = 'liquidity_ratio_data';
+    protected $fillable = [
+        'company_id',
+        'year',
+        'quarter',
+        'DAR',
+        'DER',
+    ];
 
     public $timestamps = false;
 

@@ -10,6 +10,14 @@ class RevenueData extends Model
     use HasFactory;
 
     protected $table = 'revenue_data';
+    protected $fillable = [
+        'company_id',
+        'year',
+        'quarter',
+        'revenue',
+        'gross_profit',
+        'net_profit',
+    ];
 
     public $timestamps = false;
 

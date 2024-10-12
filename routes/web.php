@@ -47,13 +47,19 @@ Route::get('/reset-password/{token}', [AnalyzeController::class, 'showResetForm'
 Route::post('/reset-password', [AnalyzeController::class, 'resetPassword'])->name('password.update');
 
 Route::prefix('admin_analyze')->group(function () {
-    Route::get('index', [AnalyzeDashboardController::class, 'index'])->name('admin_analyze.dashboard');
-    Route::get('create', [AnalyzeDashboardController::class, 'create'])->name('admin_analyze.create');
-    Route::post('store', [AnalyzeDashboardController::class, 'store'])->name('admin_analyze.store');
-    Route::get('{id}', [AnalyzeDashboardController::class, 'show'])->name('admin_analyze.show');
-    Route::get('{id}/edit', [AnalyzeDashboardController::class, 'edit'])->name('admin_analyze.edit');
-    Route::put('{id}', [AnalyzeDashboardController::class, 'update'])->name('admin_analyze.update');
-    Route::delete('{id}', [AnalyzeDashboardController::class, 'destroy'])->name('admin_analyze.destroy');
+    Route::get('index', [AnalyzeDashboardController::class, 'index'])->name('admin_analyze.emiten.dashboard');
+    Route::get('create', [AnalyzeDashboardController::class, 'create'])->name('admin_analyze.emiten.create');
+    Route::post('store', [AnalyzeDashboardController::class, 'store'])->name('admin_analyze.emiten.store');
+    Route::get('{id}', [AnalyzeDashboardController::class, 'show'])->name('admin_analyze.emiten.show');
+    Route::get('{id}/edit', [AnalyzeDashboardController::class, 'edit'])->name('admin_analyze.emiten.edit');
+    Route::put('{id}', [AnalyzeDashboardController::class, 'update'])->name('admin_analyze.emiten.update');
+    Route::delete('{id}', [AnalyzeDashboardController::class, 'destroy'])->name('admin_analyze.emiten.destroy');
+
+    Route::get('user/index', [AnalyzeDashboardController::class, 'showUsers'])->name('admin_analyze.user.index');
+
+
+    Route::get('{companyId}/key_ratio/{id}/edit', [AnalyzeDashboardController::class, 'edit_key_ratio'])->name('admin_analyze.key_ratio.edit');
+    Route::put('{companyId}/key_ratio/update', [AnalyzeDashboardController::class, 'update_key_ratio'])->name('admin_analyze.key_ratio.update');
 
     // Routes for Revenue Data
     Route::get('{companyId}/revenue/create', [AnalyzeDashboardController::class, 'createRevenue'])->name('admin_analyze.revenue.create');

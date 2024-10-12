@@ -10,6 +10,13 @@ class FinancialPositionData extends Model
     use HasFactory;
 
     protected $table = 'financial_position_data';
+    protected $fillable = [
+        'company_id',
+        'year',
+        'quarter',
+        'asset',
+        'liability',
+    ];
 
     public $timestamps = false;
 
