@@ -81,7 +81,7 @@ class GeneralInformation extends Component
                 return [
                 'asset' => $positions->pluck('asset', 'year')->only($years),
                 'liability' => $positions->pluck('liability', 'year')->only($years),
-                'equity' => $positions->pluck('equity', 'year')->only($years),
+                'equality' => $positions->pluck('equality', 'year')->only($years),
             ];
             });
 

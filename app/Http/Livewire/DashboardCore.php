@@ -50,7 +50,7 @@ class DashboardCore extends Component
             'series' => [
                 ['name' => 'Asset', 'data' => $company->financialPositions->pluck('asset')->toArray()],
                 ['name' => 'Liability', 'data' => $company->financialPositions->pluck('liability')->toArray()],
-                ['name' => 'Equity', 'data' => $company->financialPositions->pluck('equity')->toArray()],
+                ['name' => 'Equality', 'data' => $company->financialPositions->pluck('equality')->toArray()],
             ],
         ];
 

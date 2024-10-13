@@ -66,7 +66,7 @@ class KeyRatio extends Component
             ],
         ];
 
-        // Ambil data financial position (Asset, Liability, Equity)
+        // Ambil data financial position (Asset, Liability, Equality)
         $this->financialPositionData = [
             'categories' => $company->financialPositions->pluck('quarter')->toArray(),
             'series' => [
@@ -83,8 +83,8 @@ class KeyRatio extends Component
                     })->toArray(),
                 ],
                 [
-                    'name' => 'Equity',
-                    'data' => $company->financialPositions->pluck('equity')->map(function ($value) {
+                    'name' => 'Equality',
+                    'data' => $company->financialPositions->pluck('equality')->map(function ($value) {
                         return floatval(str_replace(' B', '', $value));
                     })->toArray(),
                 ],

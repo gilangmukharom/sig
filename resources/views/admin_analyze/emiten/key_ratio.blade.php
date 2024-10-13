@@ -8,439 +8,173 @@
         <form method="GET" action="">
             <div class="card shadow p-4 mb-4 bg-white rounded">
                 <div class="row g-4 align-items-center">
-                    <!-- Filter Tahun -->
                     <div class="col-md-6">
-                        <label for="filter_years" class="form-label fw-bold primary-color-text">Select Years to Display</label>
-                        <div class="border rounded p-3 bg-light">
-                            @foreach ($allYears as $year)
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="checkbox" name="filter_years[]"
-                                        value="{{ $year }}" id="year_{{ $year }}"
-                                        {{ in_array($year, $years) ? 'checked' : '' }}>
-                                    <label class="form-check-label primary-color-text" for="year_{{ $year }}">
-                                        {{ $year }}
-                                    </label>
-                                </div>
-                            @endforeach
+                        <label for="filter_years" class="form-label fw-bold primary-color-text">Select Years to
+                            Display</label>
+                        <div class="dropdown">
+                            <button class="btn btn-light dropdown-toggle w-100" type="button" id="dropdownMenuButton"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                Select Years
+                            </button>
+                            <ul class="dropdown-menu p-3" aria-labelledby="dropdownMenuButton"
+                                style="max-height: 300px; overflow-y: auto;">
+                                <!-- List of existing years -->
+                                @foreach ($allYears as $year)
+                                    <li>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="filter_years[]"
+                                                value="{{ $year }}" id="year_{{ $year }}"
+                                                {{ in_array($year, $years) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="year_{{ $year }}">
+                                                {{ $year }}
+                                            </label>
+                                        </div>
+                                    </li>
+                                @endforeach
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <!-- Section to add a new year -->
+                                <li>
+                                    <div class="input-group">
+                                        <input type="hidden" id="companyId" value="{{ $company->id }}">
+                                        <input type="number" class="form-control" id="newYearInput"
+                                            placeholder="Add new year">
+                                        <button type="button" class="btn btn-outline-primary"
+                                            id="addYearButton">Add</button>
+                                    </div>
+                                </li>
+                            </ul>
                         </div>
-                        <small class="text-muted d-block mt-2" data-bs-toggle="tooltip" data-bs-placement="right"
-                            title="Select up to 3 years for filtering the data.">
-                            You can select up to 3 years.
-                        </small>
+                        <small class="text-muted d-block mt-2">You can select up to 3 years.</small>
                     </div>
 
-                    <!-- Tombol Submit -->
                     <div class="col-md-4 offset-md-2 d-flex justify-content-md-end justify-content-start">
-                        <button type="submit"
-                            class="btn btn-custom2 d-flex align-items-center justify-content-center w-100 shadow-sm">
+                        <button type="submit" class="btn btn-custom2 w-100 shadow-sm">
                             <i class="fas fa-filter me-2"></i> Filter Data
                         </button>
                     </div>
-
-                    <!-- Filter Data -->
-                    <div class="col-md-12 mt-4">
-                        <label for="filter_data" class="form-label fw-bold primary-color-text">Select Data to Display</label>
-                        <div class="border rounded p-4 bg-light">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" value="revenue" id="display_revenue"
-                                            checked>
-                                        <label class="form-check-label primary-color-text" for="display_revenue">
-                                            <i class="fas fa-chart-line primary-color-text me-2"></i> Revenue
-                                        </label>
-                                    </div>
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" value="gross_profit"
-                                            id="display_gross_profit" checked>
-                                        <label class="form-check-label primary-color-text" for="display_gross_profit">
-                                            <i class="fas fa-chart-bar primary-color-text me-2"></i> Gross Profit
-                                        </label>
-                                    </div>
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" value="net_profit"
-                                            id="display_net_profit" checked>
-                                        <label class="form-check-label primary-color-text" for="display_net_profit">
-                                            <i class="fas fa-coins primary-color-text me-2"></i> Net Profit
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" value="assets" id="display_assets"
-                                            checked>
-                                        <label class="form-check-label primary-color-text" for="display_assets">
-                                            <i class="fas fa-building primary-color-text me-2"></i> Assets
-                                        </label>
-                                    </div>
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" value="liabilities"
-                                            id="display_liabilities" checked>
-                                        <label class="form-check-label primary-color-text" for="display_liabilities">
-                                            <i class="fas fa-file-invoice-dollar primary-color-text me-2"></i> Liabilities
-                                        </label>
-                                    </div>
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" value="dividends"
-                                            id="display_dividends" checked>
-                                        <label class="form-check-label primary-color-text" for="display_dividends">
-                                            <i class="fas fa-hand-holding-usd primary-color-text me-2"></i> Dividends
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" value="roe" id="display_roe"
-                                            checked>
-                                        <label class="form-check-label primary-color-text" for="display_roe">
-                                            <i class="fas fa-percentage primary-color-text me-2"></i> ROE
-                                        </label>
-                                    </div>
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" value="eps" id="display_eps"
-                                            checked>
-                                        <label class="form-check-label primary-color-text" for="display_eps">
-                                            <i class="fas fa-chart-pie primary-color-text me-2"></i> EPS
-                                        </label>
-                                    </div>
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" value="dar" id="display_dar"
-                                            checked>
-                                        <label class="form-check-label primary-color-text" for="display_dar">
-                                            <i class="fas fa-balance-scale primary-color-text me-2"></i> DAR
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
             </div>
         </form>
 
-        <!-- Form untuk update data -->
-        <form action="{{ route('admin_analyze.key_ratio.update', $company->id) }}" method="POST">
+        <!-- Form for updating key ratios -->
+        <form id="update-form" action="{{ route('admin_analyze.key_ratio.update', $company->id) }}" method="POST">
             @csrf
             @method('PUT')
 
-            <!-- Revenue Section -->
-            <div class="row revenue">
-                <div class="col-md-12">
-                    <p class="mt-4"><b>Revenue Data</b></p>
-                    <hr>
-                    <div class="card p-3 border-0">
-                        <h4>Revenue</h4>
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Quarter</th>
-                                    @foreach ($years as $year)
-                                        <th class="text-center">{{ $year }}</th>
-                                    @endforeach
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($quarters as $quarter)
-                                    <tr>
-                                        <td>{{ $quarter }}</td>
-                                        @foreach ($years as $year)
-                                            <td>
-                                                <input type="text"
-                                                    name="revenues[{{ $year }}][{{ $quarter }}]"
-                                                    value="{{ old('revenues.' . $year . '.' . $quarter, $revenueData[$quarter][$year]['revenue'] ?? '-') }}"
-                                                    class="form-control">
-                                            </td>
-                                        @endforeach
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Gross Profit Section -->
-            <div class="row gross_profit">
-                <div class="col-md-12">
-                    <p class="mt-4"><b>Gross Profit Data</b></p>
-                    <hr>
-                    <div class="card p-3 border-0">
-                        <h4>Gross Profit</h4>
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Quarter</th>
-                                    @foreach ($years as $year)
-                                        <th>{{ $year }}</th>
-                                    @endforeach
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($quarters as $quarter)
-                                    <tr>
-                                        <td>{{ $quarter }}</td>
-                                        @foreach ($years as $year)
-                                            <td>
-                                                <input type="text"
-                                                    name="gross_profits[{{ $year }}][{{ $quarter }}]"
-                                                    value="{{ old('gross_profits.' . $year . '.' . $quarter, $revenueData[$quarter][$year]['gross_profit'] ?? '-') }}"
-                                                    class="form-control">
-                                            </td>
-                                        @endforeach
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Net Profit Section -->
-            <div class="row net_profit">
-                <div class="col-md-12">
-                    <p class="mt-4"><b>Net Profit Data</b></p>
-                    <hr>
-                    <div class="card p-3 border-0">
-                        <h4>Net Profit</h4>
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Quarter</th>
-                                    @foreach ($years as $year)
-                                        <th>{{ $year }}</th>
-                                    @endforeach
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($quarters as $quarter)
-                                    <tr>
-                                        <td>{{ $quarter }}</td>
-                                        @foreach ($years as $year)
-                                            <td>
-                                                <input type="text"
-                                                    name="net_profits[{{ $year }}][{{ $quarter }}]"
-                                                    value="{{ old('net_profits.' . $year . '.' . $quarter, $revenueData[$quarter][$year]['net_profit'] ?? '-') }}"
-                                                    class="form-control">
-                                            </td>
-                                        @endforeach
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Financial Position Section -->
-            <div class="row assets">
-                <p class="mt-4"><b>Financial Position Data</b></p>
+            <!-- Profitability Ratios Section -->
+            <div class="row d-flex flex-wrap gap-4">
+                <p class="mt-4"><b>Profitability Ratios</b></p>
                 <hr>
-                <div class="col-md-6">
-                    <div class="card p-3 border-0">
-                        <h4>Assets</h4>
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Quarter</th>
-                                    @foreach ($years as $year)
-                                        <th>{{ $year }}</th>
-                                    @endforeach
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($quarters as $quarter)
+                @foreach (['ROE', 'GPM', 'NPM'] as $ratio)
+                    <div class="col-md-5">
+                        <div class="card p-3 border-0">
+                            <h4>{{ $ratio }}</h4>
+                            <table class="table">
+                                <thead>
                                     <tr>
-                                        <td>{{ $quarter }}</td>
+                                        <th>Quarter</th>
                                         @foreach ($years as $year)
-                                            <td>
-                                                <input type="text"
-                                                    name="financial_positions[asset][{{ $year }}][{{ $quarter }}]"
-                                                    value="{{ old('financial_positions.asset.' . $year . '.' . $quarter, $financialPositionData[$quarter]['asset'][$year] ?? '-') }}"
-                                                    class="form-control">
-                                            </td>
+                                            <th>{{ $year }}</th>
                                         @endforeach
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="col-md-6">
-                    <div class="card p-3 border-0">
-                        <h4>Liabilities</h4>
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Quarter</th>
-                                    @foreach ($years as $year)
-                                        <th>{{ $year }}</th>
+                                </thead>
+                                <tbody>
+                                    @foreach ($quarters as $quarter)
+                                        <tr>
+                                            <td>{{ $quarter }}</td>
+                                            @foreach ($years as $year)
+                                                <td>
+                                                    <input type="text"
+                                                        name="profitability_ratios[{{ $ratio }}][{{ $year }}][{{ $quarter }}]"
+                                                        value="{{ old('profitability_ratios.' . $ratio . '.' . $year . '.' . $quarter, $profitabilityRatioData[$quarter][$year][$ratio] ?? '-') }}"
+                                                        class="form-control">
+                                                </td>
+                                            @endforeach
+                                        </tr>
                                     @endforeach
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($quarters as $quarter)
-                                    <tr>
-                                        <td>{{ $quarter }}</td>
-                                        @foreach ($years as $year)
-                                            <td>
-                                                <input type="text"
-                                                    name="financial_positions[liability][{{ $year }}][{{ $quarter }}]"
-                                                    value="{{ old('financial_positions.liability.' . $year . '.' . $quarter, $financialPositionData[$quarter]['liability'][$year] ?? '-') }}"
-                                                    class="form-control">
-                                            </td>
-                                        @endforeach
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
+                @endforeach
             </div>
 
-            <!-- Dividend Section -->
-            <p class="mt-4"><b>Dividend Data</b></p>
-            <hr>
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="card p-3 border-0">
-                        <h4>Dividend per Share</h4>
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Quarter</th>
-                                    @foreach ($years as $year)
-                                        <th>{{ $year }}</th>
-                                    @endforeach
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($quarters as $quarter)
+            <!-- Relative Ratios Section -->
+            <div class="row d-flex flex-wrap gap-4">
+                <p class="mt-4"><b>Relative Ratios</b></p>
+                <hr>
+                @foreach (['EPS', 'PER', 'BVPS', 'PBV'] as $ratio)
+                    <div class="col-md-5">
+                        <div class="card p-3 border-0">
+                            <h4>{{ $ratio }}</h4>
+                            <table class="table">
+                                <thead>
                                     <tr>
-                                        <td>{{ $quarter }}</td>
+                                        <th>Quarter</th>
                                         @foreach ($years as $year)
-                                            <td>
-                                                <input type="text"
-                                                    name="dividends[{{ $year }}][{{ $quarter }}]"
-                                                    value="{{ old('dividends.' . $year . '.' . $quarter, $dividendData[$quarter][$year] ?? '-') }}"
-                                                    class="form-control">
-                                            </td>
+                                            <th>{{ $year }}</th>
                                         @endforeach
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    @foreach ($quarters as $quarter)
+                                        <tr>
+                                            <td>{{ $quarter }}</td>
+                                            @foreach ($years as $year)
+                                                <td>
+                                                    <input type="text"
+                                                        name="relative_ratios[{{ $ratio }}][{{ $year }}][{{ $quarter }}]"
+                                                        value="{{ old('relative_ratios.' . $ratio . '.' . $year . '.' . $quarter, $relativeRatioData[$quarter][$ratio][$year] ?? '-') }}"
+                                                        class="form-control">
+                                                </td>
+                                            @endforeach
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
+                @endforeach
             </div>
 
-            <!-- Profitability Ratio Section -->
-            <p class="mt-4"><b>Profitability Ratio Data</b></p>
-            <hr>
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="card p-3 border-0">
-                        <h4>Return on Equity (ROE)</h4>
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Quarter</th>
-                                    @foreach ($years as $year)
-                                        <th>{{ $year }}</th>
-                                    @endforeach
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($quarters as $quarter)
+            <!-- Liquidity Ratios Section -->
+            <div class="row d-flex flex-wrap gap-4">
+                <p class="mt-4"><b>Liquidity Ratios</b></p>
+                <hr>
+                @foreach (['DAR', 'DER'] as $ratio)
+                    <div class="col-md-5">
+                        <div class="card p-3 border-0">
+                            <h4>{{ $ratio }}</h4>
+                            <table class="table">
+                                <thead>
                                     <tr>
-                                        <td>{{ $quarter }}</td>
+                                        <th>Quarter</th>
                                         @foreach ($years as $year)
-                                            <td>
-                                                <input type="text"
-                                                    name="profitability_ratios[ROE][{{ $year }}][{{ $quarter }}]"
-                                                    value="{{ old('profitability_ratios.ROE.' . $year . '.' . $quarter, $profitabilityRatioData[$quarter]['ROE'][$year] ?? '-') }}"
-                                                    class="form-control">
-                                            </td>
+                                            <th>{{ $year }}</th>
                                         @endforeach
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Relative Ratio Section -->
-            <p class="mt-4"><b>Relative Ratio Data</b></p>
-            <hr>
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="card p-3 border-0">
-                        <h4>Earnings Per Share (EPS)</h4>
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Quarter</th>
-                                    @foreach ($years as $year)
-                                        <th>{{ $year }}</th>
+                                </thead>
+                                <tbody>
+                                    @foreach ($quarters as $quarter)
+                                        <tr>
+                                            <td>{{ $quarter }}</td>
+                                            @foreach ($years as $year)
+                                                <td>
+                                                    <input type="text"
+                                                        name="liquidity_ratios[{{ $ratio }}][{{ $year }}][{{ $quarter }}]"
+                                                        value="{{ old('liquidity_ratios.' . $ratio . '.' . $year . '.' . $quarter, $liquidityRatioData[$quarter][$ratio][$year] ?? '-') }}"
+                                                        class="form-control">
+                                                </td>
+                                            @endforeach
+                                        </tr>
                                     @endforeach
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($quarters as $quarter)
-                                    <tr>
-                                        <td>{{ $quarter }}</td>
-                                        @foreach ($years as $year)
-                                            <td>
-                                                <input type="text"
-                                                    name="relative_ratios[EPS][{{ $year }}][{{ $quarter }}]"
-                                                    value="{{ old('relative_ratios.EPS.' . $year . '.' . $quarter, $relativeRatioData[$quarter]['EPS'][$year] ?? '-') }}"
-                                                    class="form-control">
-                                            </td>
-                                        @endforeach
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Liquidity Ratio Section -->
-            <p class="mt-4"><b>Liquidity Ratio Data</b></p>
-            <hr>
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="card p-3 border-0">
-                        <h4>Debt to Asset Ratio (DAR)</h4>
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Quarter</th>
-                                    @foreach ($years as $year)
-                                        <th>{{ $year }}</th>
-                                    @endforeach
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($quarters as $quarter)
-                                    <tr>
-                                        <td>{{ $quarter }}</td>
-                                        @foreach ($years as $year)
-                                            <td>
-                                                <input type="text"
-                                                    name="liquidity_ratios[DAR][{{ $year }}][{{ $quarter }}]"
-                                                    value="{{ old('liquidity_ratios.DAR.' . $year . '.' . $quarter, $liquidityRatioData[$quarter]['DAR'][$year] ?? '-') }}"
-                                                    class="form-control">
-                                            </td>
-                                        @endforeach
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                @endforeach
             </div>
 
             <!-- Submit Button -->
@@ -451,105 +185,131 @@
     </div>
 
     <script>
-        $(document).ready(function() {
-            function toggleColumns() {
-                // Show or hide revenue
-                if ($('#display_revenue').is(':checked')) {
-                    $('.revenue').show();
-                } else {
-                    $('.revenue').hide();
-                }
-
-                // Show or hide gross profit
-                if ($('#display_gross_profit').is(':checked')) {
-                    $('.gross_profit').show();
-                } else {
-                    $('.gross_profit').hide();
-                }
-
-                // Show or hide net profit
-                if ($('#display_net_profit').is(':checked')) {
-                    $('.net_profit').show();
-                } else {
-                    $('.net_profit').hide();
-                }
-
-                // Show or hide assets
-                if ($('#display_assets').is(':checked')) {
-                    $('.assets').show();
-                } else {
-                    $('.assets').hide();
-                }
-
-                // Show or hide liabilities
-                if ($('#display_liabilities').is(':checked')) {
-                    $('.liabilities').show();
-                } else {
-                    $('.liabilities').hide();
-                }
-
-                // Show or hide dividends
-                if ($('#display_dividends').is(':checked')) {
-                    $('.dividends').show();
-                } else {
-                    $('.dividends').hide();
-                }
-
-                // Show or hide ROE
-                if ($('#display_roe').is(':checked')) {
-                    $('.roe').show();
-                } else {
-                    $('.roe').hide();
-                }
-
-                // Show or hide EPS
-                if ($('#display_eps').is(':checked')) {
-                    $('.eps').show();
-                } else {
-                    $('.eps').hide();
-                }
-
-                // Show or hide DAR
-                if ($('#display_dar').is(':checked')) {
-                    $('.dar').show();
-                } else {
-                    $('.dar').hide();
-                }
-            }
-
-            // Call the function when the page loads
-            toggleColumns();
-
-            // Call the function whenever the user changes a checkbox
-            $('input[type="checkbox"]').on('change', function() {
-                toggleColumns();
+        // Membatasi jumlah maksimum tahun yang bisa dipilih
+        document.addEventListener('DOMContentLoaded', function() {
+            var checkboxes = document.querySelectorAll('input[name="filter_years[]"]');
+    
+            checkboxes.forEach(function(checkbox) {
+                checkbox.addEventListener('change', function() {
+                    var checkedBoxes = document.querySelectorAll('input[name="filter_years[]"]:checked');
+    
+                    if (checkedBoxes.length > 3) {
+                        // Jika lebih dari 3 checkbox yang dipilih, uncheck checkbox yang baru di-klik
+                        this.checked = false;
+    
+                        // Tampilkan peringatan menggunakan SweetAlert2
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Limit Reached',
+                            text: 'You can select up to 3 years only.',
+                        });
+                    }
+                });
             });
         });
-    </script>
+    
+        // Event listener untuk menambahkan tahun baru menggunakan AJAX
+        document.getElementById('addYearButton').addEventListener('click', function() {
+            var newYear = document.getElementById('newYearInput').value;
+            var companyId = document.getElementById('companyId').value;
+    
+            if (newYear && companyId) {
+                // Validasi bahwa input tahun memiliki 4 digit
+                if (!/^\d{4}$/.test(newYear)) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Year',
+                        text: 'Please enter a valid 4-digit year.',
+                    });
+                    return;
+                }
+    
+                $.ajax({
+                    url: '{{ route('years.store') }}',
+                    type: 'POST',
+                    data: {
+                        year: newYear,
+                        company_id: companyId,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        var newYearCheckbox = `
+                            <li>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="filter_years[]" value="` + response.year + `" id="year_` + response.year + `" checked>
+                                    <label class="form-check-label" for="year_` + response.year + `">` + response.year + `</label>
+                                </div>
+                            </li>`;
+    
+                        var dropdownMenu = document.querySelector('.dropdown-menu');
+                        var divider = dropdownMenu.querySelector('.dropdown-divider');
+                        dropdownMenu.insertAdjacentHTML('beforebegin', newYearCheckbox);
+    
+                        // Kosongkan input field
+                        document.getElementById('newYearInput').value = '';
+    
+                        // Tambahkan validasi pada checkbox yang baru
+                        var newCheckbox = document.getElementById('year_' + response.year);
+                        newCheckbox.addEventListener('change', function() {
+                            var checkedBoxes = document.querySelectorAll('input[name="filter_years[]"]:checked');
+                            if (checkedBoxes.length > 3) {
+                                this.checked = false;
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Limit Reached',
+                                    text: 'You can select up to 3 years only.',
+                                });
+                            }
+                        });
+    
+                        // Tampilkan SweetAlert jika sukses
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Year Added',
+                            text: 'The year has been successfully added.',
+                        });
+                    },
+                    error: function(xhr) {
+                        console.error(xhr.responseText);
+    
+                        // Tampilkan SweetAlert jika gagal
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Failed to Add Year',
+                            text: 'Error: The year already exists for this company',
+                        });
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Missing Information',
+                    text: 'Please enter a year and make sure company ID is available.',
+                });
+            }
+        });
+    </script>    
 
-    @if ($errors->any())
-        <script>
-            let errorMessages = '';
-            @foreach ($errors->all() as $error)
-                errorMessages += '{{ $error }}<br>';
-            @endforeach
-
-            Swal.fire({
-                title: 'Error!',
-                html: errorMessages,
-                icon: 'error',
-                confirmButtonText: 'OK'
-            })
-        </script>
-    @endif
     @if (session('success'))
         <script>
             Swal.fire({
                 title: 'Success!',
-                text: '{{ session('success') }}',
+                text: "{{ session('success') }}",
                 icon: 'success',
                 confirmButtonText: 'OK'
-            })
+            });
         </script>
     @endif
+
+    @if (session('error'))
+        <script>
+            Swal.fire({
+                title: 'Error!',
+                text: "{{ session('error') }}",
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        </script>
+    @endif
+
 @endsection

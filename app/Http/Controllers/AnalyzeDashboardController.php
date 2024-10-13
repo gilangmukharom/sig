@@ -6,20 +6,30 @@ use App\Models\Company;
 use App\Models\DividendData;
 use App\Models\FinancialPositionData;
 use App\Models\LiquidityRatioData;
+use App\Models\Pack;
 use App\Models\ProfitabilityRatioData;
 use App\Models\RelativeRatioData;
 use App\Models\RevenueData;
 use App\Models\UserAnalyze;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AnalyzeDashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $companies = Company::all();
-        $totalEmiten = Company::count();
-        $totalUser = UserAnalyze::count();
-        return view('admin_analyze.emiten.dashboard', compact('companies', 'totalEmiten', 'totalUser'));
+        $search = $request->input('search');
+
+        // Filter companies based on the search query
+        $companies = Company::when($search, function ($query, $search) {
+            return $query->where('name', 'like', '%' . $search . '%')
+                ->orWhere('ticker', 'like', '%' . $search . '%');
+        })->paginate(5)->appends(['search' => $search]);
+
+        // Pass the filtered companies to the view
+        return view('admin_analyze.emiten.dashboard', compact('companies'))
+        ->with('totalEmiten', Company::count())
+            ->with('totalUser', UserAnalyze::count());
     }
 
     public function key_ratio_list()
@@ -36,31 +46,31 @@ class AnalyzeDashboardController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'ticker' => 'required|string|max:10',
-            'name' => 'required|string|max:255',
-            'address' => 'required',
-            'market_cap' => 'required|string|max:50',
-            'price' => 'required|string|max:50',
-            'growth' => 'required|string|max:10',
+        // Validasi input
+        $request->validate(['ticker' => 'required|string|max:10',  // Kode atau ticker maksimal 10 karakter
+            'name' => 'required|string|max:255',   // Nama perusahaan maksimal 255 karakter
+            'category' => 'required|string|max:255', // Kategori maksimal 255 karakter
+            'address' => 'required|string',        // Alamat harus diisi
+            'market_cap' => 'required|string|max:50', // Kapitalisasi pasar maksimal 50 karakter
+            'price' => 'required|numeric',         // Harga harus angka
+            'growth' => 'required|numeric',        // Pertumbuhan harus angka (persentase)
+            'description' => 'nullable|string',    // Deskripsi opsional
         ]);
 
-        Company::create($request->all());
+        // Simpan data ke database
+        Company::create([
+            'ticker' => $request->input('ticker'),
+            'name' => $request->input('name'),
+            'category' => $request->input('category'),
+            'address' => $request->input('address'),
+            'market_cap' => $request->input('market_cap'),
+            'price' => $request->input('price'),
+            'growth' => $request->input('growth'),
+            'description' => $request->input('description'), // Opsional
+        ]);
+
+        // Redirect kembali ke halaman dashboard dengan pesan sukses
         return redirect()->route('admin_analyze.emiten.dashboard')->with('success', 'Company created successfully.');
-    }
-
-    public function show($id)
-    {
-        $company = Company::with([
-            'revenues',
-            'financialPositions',
-            'dividends',
-            'profitabilityRatios',
-            'relativeRatios',
-            'liquidityRatios'
-        ])->find($id);
-
-        return view('admin_analyze.show', compact('company'));
     }
 
     public function edit($id)
@@ -74,16 +84,22 @@ class AnalyzeDashboardController extends Controller
         $request->validate([
             'ticker' => 'required|string|max:10',
             'name' => 'required|string|max:255',
+            'category' => 'required|string|max:255',
             'address' => 'required',
             'market_cap' => 'required|string|max:50',
             'price' => 'required|string|max:50',
             'growth' => 'required|string|max:10',
+            'description' => 'nullable|string',
         ]);
 
         $company = Company::find($id);
-        $company->update($request->all());
 
-        return redirect()->route('admin_analyze.emiten.dashboard')->with('success', 'Company updated successfully.');
+        try {
+            $company->update($request->all());
+            return redirect()->route('admin_analyze.emiten.edit', $id)->with('success', 'Company updated successfully.');
+        } catch (\Exception $e) {
+            return redirect()->route('admin_analyze.emiten.edit', $id)->with('error', 'Failed to update company: ' . $e->getMessage());
+        }
     }
 
     public function destroy($id)
@@ -92,16 +108,97 @@ class AnalyzeDashboardController extends Controller
         return redirect()->route('admin_analyze.emiten.dashboard')->with('success', 'Company deleted successfully.');
     }
 
-    public function edit_key_ratio($companyId, Request $request)
+    public function storeYear(Request $request)
+    {
+        // Validasi input: hanya memastikan bahwa year adalah integer 4 digit dan company_id valid
+        $request->validate([
+            'year' => 'required|integer|digits:4',  // Pastikan bahwa year adalah angka 4 digit
+            'company_id' => 'required|exists:company,id',  // Pastikan company_id valid
+        ]);
+
+        // Definisikan array quarters
+        $quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
+
+        // Cek apakah data dengan kombinasi year dan company_id sudah ada di tabel revenue_data
+        $existingYear = RevenueData::where('year', $request->year)
+            ->where('company_id', $request->company_id)
+            ->exists();
+
+        // Jika tahun sudah ada, kembalikan pesan error
+        if ($existingYear) {
+            return response()->json(['error' => 'The year already exists for this company.'], 400);
+        }
+
+        // Mulai transaksi untuk memastikan bahwa semua insert berjalan dengan aman
+        DB::beginTransaction();
+
+        try {
+            // Loop untuk setiap quarter
+            foreach ($quarters as $quarter) {
+                // Simpan data tahun ke tabel revenue_data
+                RevenueData::create([
+                    'year' => $request->year,
+                    'company_id' => $request->company_id,
+                    'quarter' => $quarter,  // Simpan kuartal (Q1, Q2, Q3, atau Q4)
+                    'revenue' => null,  // Set nilai default atau null
+                    'gross_profit' => null,
+                    'net_profit' => null,
+                ]);
+
+                // Simpan data tahun ke tabel profitability_ratio_data
+                ProfitabilityRatioData::create([
+                    'year' => $request->year,
+                    'company_id' => $request->company_id,
+                    'quarter' => $quarter,
+                    'ROE' => null,  // Set nilai default atau null
+                    'GPM' => null,
+                    'NPM' => null,
+                ]);
+
+                // Simpan data tahun ke tabel liquidity_ratio_data
+                LiquidityRatioData::create([
+                    'year' => $request->year,
+                    'company_id' => $request->company_id,
+                    'quarter' => $quarter,
+                    'DAR' => null,  // Set nilai default atau null
+                    'DER' => null,
+                ]);
+
+                // Simpan data tahun ke tabel relative_ratio_data
+                RelativeRatioData::create([
+                    'year' => $request->year,
+                    'company_id' => $request->company_id,
+                    'quarter' => $quarter,
+                    'EPS' => null,  // Set nilai default atau null
+                    'PER' => null,
+                    'BVPS' => null,
+                    'PBV' => null,
+                ]);
+            }
+
+            // Commit transaksi jika semua data berhasil disimpan
+            DB::commit();
+
+            // Kembalikan respons JSON yang sukses
+            return response()->json(['year' => $request->year]);
+        } catch (\Exception $e) {
+            // Jika ada error, rollback transaksi
+            DB::rollBack();
+
+            // Kembalikan pesan error
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+
+
+    public function edit_key_statistics($companyId, Request $request)
     {
         // Temukan perusahaan dan hubungannya
         $company = Company::with([
             'revenues',
             'financialPositions',
             'dividends',
-            'profitabilityRatios',
-            'relativeRatios',
-            'liquidityRatios'
         ])->find($companyId);
 
         // Jika company tidak ditemukan, redirect dengan error message
@@ -149,11 +246,13 @@ class AnalyzeDashboardController extends Controller
                     ->first();
                 $financialPositionData[$quarter]['asset'][$year] = $financialPosition ? $financialPosition->asset : '-';
                 $financialPositionData[$quarter]['liability'][$year] = $financialPosition ? $financialPosition->liability : '-';
+                $financialPositionData[$quarter]['equality'][$year] = $financialPosition ? $financialPosition->equality : '-';
             }
         }
 
         // Ambil dividend data
         $dividendData = [];
+        $yieldData = [];
         foreach ($quarters as $quarter) {
             foreach ($years as $year) {
                 $dividend = DividendData::where('company_id', $companyId)
@@ -161,74 +260,37 @@ class AnalyzeDashboardController extends Controller
                     ->where('quarter', $quarter)
                     ->first();
                 $dividendData[$quarter][$year] = $dividend ? $dividend->dividend_per_sheet : '-';
-            }
-        }
-
-        // Ambil profitability ratio data
-        $profitabilityRatioData = [];
-        foreach ($quarters as $quarter) {
-            foreach ($years as $year) {
-                $profitabilityRatio = ProfitabilityRatioData::where('company_id', $companyId)
-                    ->where('year', $year)
-                    ->where('quarter', $quarter)
-                    ->first();
-                $profitabilityRatioData[$quarter]['ROE'][$year] = $profitabilityRatio ? $profitabilityRatio->ROE : '-';
-            }
-        }
-
-        // Ambil relative ratio data
-        $relativeRatioData = [];
-        foreach ($quarters as $quarter) {
-            foreach ($years as $year) {
-                $relativeRatio = RelativeRatioData::where('company_id', $companyId)
-                    ->where('year', $year)
-                    ->where('quarter', $quarter)
-                    ->first();
-                $relativeRatioData[$quarter]['EPS'][$year] = $relativeRatio ? $relativeRatio->EPS : '-';
-            }
-        }
-
-        // Ambil liquidity ratio data
-        $liquidityRatioData = [];
-        foreach ($quarters as $quarter) {
-            foreach ($years as $year) {
-                $liquidityRatio = LiquidityRatioData::where('company_id', $companyId)
-                    ->where('year', $year)
-                    ->where('quarter', $quarter)
-                    ->first();
-                $liquidityRatioData[$quarter]['DAR'][$year] = $liquidityRatio ? $liquidityRatio->DAR : '-';
+                $yieldData[$quarter][$year] = $dividend ? $dividend->yield : '-';
             }
         }
 
         // Kirim semua data ke view
-        return view('admin_analyze.emiten.key_ratio', compact(
+        return view('admin_analyze.emiten.key_statistics', compact(
             'company',
             'years',
             'quarters',
             'revenueData',
             'financialPositionData',
             'dividendData',
-            'profitabilityRatioData',
-            'relativeRatioData',
-            'liquidityRatioData',
+            'yieldData',
             'allYears'
         ));
     }
 
-    public function update_key_ratio(Request $request, $companyId)
+    public function update_key_statistics(Request $request, $companyId)
     {
         // Validasi input, pastikan semua field yang diharapkan terisi
-        $request->validate([
-            'revenues.*.*' => 'numeric|string',
-            'gross_profits.*.*' => 'numeric|string',
-            'net_profits.*.*' => 'numeric|string',
-            'financial_positions.asset.*.*' => 'nullable|string',
-            'financial_positions.liability.*.*' => 'nullable|string',
-            'dividends.*.*' => 'nullable|string',
-            'profitability_ratios.ROE.*.*' => 'nullable|string',
-            'relative_ratios.EPS.*.*' => 'nullable|string',
-            'liquidity_ratios.DAR.*.*' => 'nullable|string',
-        ]);
+        $request->validate(
+            [
+                'revenues.*.*' => 'numeric|nullable',
+                'gross_profits.*.*' => 'numeric|nullable',
+                'net_profits.*.*' => 'numeric|nullable',
+                'financial_positions.asset.*.*' => 'nullable|numeric',
+                'financial_positions.liability.*.*' => 'nullable|numeric',
+                'financial_positions.equality.*.*' => 'nullable|numeric',
+                'dividends.*.*' => 'nullable|numeric',
+            ]
+        );
 
         // Update Revenue Data
         foreach ($request->input('revenues', []) as $year => $quarters) {
@@ -240,6 +302,15 @@ class AnalyzeDashboardController extends Controller
 
                 if ($revenueData) {
                     $revenueData->update([
+                        'revenue' => $revenue,
+                        'gross_profit' => $request->input("gross_profits.$year.$quarter"),
+                        'net_profit' => $request->input("net_profits.$year.$quarter"),
+                    ]);
+                } else {
+                    RevenueData::create([
+                        'company_id' => $companyId,
+                        'year' => $year,
+                        'quarter' => $quarter,
                         'revenue' => $revenue,
                         'gross_profit' => $request->input("gross_profits.$year.$quarter"),
                         'net_profit' => $request->input("net_profits.$year.$quarter"),
@@ -260,6 +331,16 @@ class AnalyzeDashboardController extends Controller
                     $financialPositionData->update([
                         'asset' => $asset,
                         'liability' => $request->input("financial_positions.liability.$year.$quarter"),
+                        'equality' => $request->input("financial_positions.equality.$year.$quarter"),
+                    ]);
+                } else {
+                    FinancialPositionData::create([
+                        'company_id' => $companyId,
+                        'year' => $year,
+                        'quarter' => $quarter,
+                        'asset' => $asset,
+                        'liability' => $request->input("financial_positions.liability.$year.$quarter"),
+                        'equality' => $request->input("financial_positions.equality.$year.$quarter"),
                     ]);
                 }
             }
@@ -268,6 +349,7 @@ class AnalyzeDashboardController extends Controller
         // Update Dividend Data
         foreach ($request->input('dividends', []) as $year => $quarters) {
             foreach ($quarters as $quarter => $dividend) {
+                $yield = $request->input("yields.$year.$quarter");
                 $dividendData = DividendData::where('company_id', $companyId)
                     ->where('year', $year)
                     ->where('quarter', $quarter)
@@ -276,54 +358,15 @@ class AnalyzeDashboardController extends Controller
                 if ($dividendData) {
                     $dividendData->update([
                         'dividend_per_sheet' => $dividend,
+                        'yield' => $yield,
                     ]);
-                }
-            }
-        }
-
-        // Update Profitability Ratios (ROE)
-        foreach ($request->input('profitability_ratios.ROE', []) as $year => $quarters) {
-            foreach ($quarters as $quarter => $ROE) {
-                $profitabilityRatioData = ProfitabilityRatioData::where('company_id', $companyId)
-                    ->where('year', $year)
-                    ->where('quarter', $quarter)
-                    ->first();
-
-                if ($profitabilityRatioData) {
-                    $profitabilityRatioData->update([
-                        'ROE' => $ROE,
-                    ]);
-                }
-            }
-        }
-
-        // Update Relative Ratios (EPS)
-        foreach ($request->input('relative_ratios.EPS', []) as $year => $quarters) {
-            foreach ($quarters as $quarter => $EPS) {
-                $relativeRatioData = RelativeRatioData::where('company_id', $companyId)
-                    ->where('year', $year)
-                    ->where('quarter', $quarter)
-                    ->first();
-
-                if ($relativeRatioData) {
-                    $relativeRatioData->update([
-                        'EPS' => $EPS,
-                    ]);
-                }
-            }
-        }
-
-        // Update Liquidity Ratios (DAR)
-        foreach ($request->input('liquidity_ratios.DAR', []) as $year => $quarters) {
-            foreach ($quarters as $quarter => $DAR) {
-                $liquidityRatioData = LiquidityRatioData::where('company_id', $companyId)
-                    ->where('year', $year)
-                    ->where('quarter', $quarter)
-                    ->first();
-
-                if ($liquidityRatioData) {
-                    $liquidityRatioData->update([
-                        'DAR' => $DAR,
+                } else {
+                    DividendData::create([
+                        'company_id' => $companyId,
+                        'year' => $year,
+                        'quarter' => $quarter,
+                        'dividend_per_sheet' => $dividend,
+                        'yield' => $yield,
                     ]);
                 }
             }
@@ -332,308 +375,157 @@ class AnalyzeDashboardController extends Controller
         return redirect()->back()->with('success', 'Key Ratios updated successfully.');
     }
 
-    public function createRevenue($companyId)
+    public function edit_key_ratio($companyId, Request $request)
     {
-        $company = Company::find($companyId);
-        return view('admin_analyze.emiten.revenue.create', compact('company'));
+        // Temukan perusahaan dan hubungannya
+        $company = Company::with([
+            'profitabilityRatios',
+            'relativeRatios',
+            'liquidityRatios',
+        ])->find($companyId);
+
+        // Jika company tidak ditemukan, redirect dengan error message
+        if (!$company) {
+            return redirect()->route('admin_analyze.emiten.dashboard')->with('error', 'Company not found.');
+        }
+
+        // Ambil data semua tahun dari revenue
+        $allYears = ProfitabilityRatioData::where('company_id', $companyId)
+            ->select('year')
+            ->distinct()
+            ->orderBy(
+                'year',
+                'desc'
+            )
+            ->pluck('year')
+            ->toArray();
+
+        // Jika tidak ada filter, tampilkan 3 tahun terbaru
+        $years = $request->input('filter_years', array_slice($allYears, 0, 3));
+
+        // Tentukan quarters (Q1, Q2, Q3, Q4)
+        $quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
+
+        $profitabilityRatioData = [];
+        foreach ($quarters as $quarter) {
+            foreach ($years as $year) {
+                $profitability = ProfitabilityRatioData::where('company_id', $companyId)
+                    ->where('year', $year)
+                    ->where('quarter', $quarter)
+                    ->first();
+
+                $profitabilityRatioData[$quarter][$year] = [
+                    'ROE' => $profitability ? $profitability->ROE : '-',
+                    'GPM' => $profitability ? $profitability->GPM : '-',
+                    'NPM' => $profitability ? $profitability->NPM : '-',
+                ];
+            }
+        }
+
+        // Ambil relative ratio data
+        $relativeRatioData = [];
+        foreach ($quarters as $quarter) {
+            foreach ($years as $year) {
+                $relativeRatio = RelativeRatioData::where('company_id', $companyId)
+                ->where('year', $year)
+                ->where('quarter', $quarter)
+                ->first();
+                $relativeRatioData[$quarter]['EPS'][$year] = $relativeRatio ? $relativeRatio->EPS : '-';
+                $relativeRatioData[$quarter]['PER'][$year] = $relativeRatio ? $relativeRatio->PER : '-';
+                $relativeRatioData[$quarter]['BVPS'][$year] = $relativeRatio ? $relativeRatio->BVPS : '-';
+                $relativeRatioData[$quarter]['PBV'][$year] = $relativeRatio ? $relativeRatio->PBV : '-';
+            }
+        }
+
+        // Ambil liquidity ratio data
+        $liquidityRatioData = [];
+        foreach ($quarters as $quarter) {
+            foreach ($years as $year) {
+                $liquidity = LiquidityRatioData::where('company_id', $companyId)
+                ->where('year', $year)
+                ->where('quarter', $quarter)
+                ->first();
+                $liquidityRatioData[$quarter]['DAR'][$year] = $liquidity ? $liquidity->DAR : '-';
+                $liquidityRatioData[$quarter]['DER'][$year] = $liquidity ? $liquidity->DER : '-';
+            }
+        }
+
+        // Kirim semua data ke view
+        return view('admin_analyze.emiten.key_ratio', compact(
+            'company',
+            'years',
+            'quarters',
+            'profitabilityRatioData',
+            'relativeRatioData',
+            'liquidityRatioData',
+            'allYears'
+        ));
     }
 
-    public function storeRevenue(Request $request, $companyId)
+    public function update_key_ratio(Request $request, $companyId)
     {
-        $request->validate([
-            'year' => 'required|integer',
-            'quarter' => 'required|string',
-            'revenue' => 'required|string',
-            'gross_profit' => 'required|string',
-            'net_profit' => 'required|string',
-        ]);
+        try {
+            // Validasi input untuk memastikan format data benar
+            $request->validate([
+                'profitability_ratios.*.*.*' => 'numeric|nullable',
+                'relative_ratios.*.*.*' => 'numeric|nullable',
+                'liquidity_ratios.*.*.*' => 'numeric|nullable',
+            ]);
 
-        $company = Company::find($companyId);
-        $company->revenues()->create($request->all());
+            // **Update Profitability Ratios**
+            foreach ($request->input('profitability_ratios', []) as $ratio => $years) {
+                foreach ($years as $year => $quarters) {
+                    foreach ($quarters as $quarter => $value) {
+                        ProfitabilityRatioData::updateOrCreate(
+                            [
+                                'company_id' => $companyId,
+                                'year' => $year,
+                                'quarter' => $quarter,
+                            ],
+                            [$ratio => $value]  // Field yang diupdate
+                        );
+                    }
+                }
+            }
 
-        return redirect()->route('admin_analyze.show', $companyId)->with('success', 'Revenue data added successfully.');
-    }
+            // **Update Relative Ratios**
+            foreach ($request->input('relative_ratios', []) as $ratio => $years) {
+                foreach ($years as $year => $quarters) {
+                    foreach ($quarters as $quarter => $value) {
+                        RelativeRatioData::updateOrCreate(
+                            [
+                                'company_id' => $companyId,
+                                'year' => $year,
+                                'quarter' => $quarter,
+                            ],
+                            [$ratio => $value]  // Field yang diupdate
+                        );
+                    }
+                }
+            }
 
-    public function editRevenue($companyId, $id)
-    {
-        $company = Company::find($companyId);
-        $revenue = RevenueData::find($id);
-        return view('admin_analyze.emiten.revenue.edit', compact('company', 'revenue'));
-    }
+            // **Update Liquidity Ratios**
+            foreach ($request->input('liquidity_ratios', []) as $ratio => $years) {
+                foreach ($years as $year => $quarters) {
+                    foreach ($quarters as $quarter => $value) {
+                        LiquidityRatioData::updateOrCreate(
+                            [
+                                'company_id' => $companyId,
+                                'year' => $year,
+                                'quarter' => $quarter,
+                            ],
+                            [$ratio => $value]  // Field yang diupdate
+                        );
+                    }
+                }
+            }
 
-    public function updateRevenue(Request $request, $companyId, $id)
-    {
-        $request->validate([
-            'year' => 'required|integer',
-            'quarter' => 'required|string',
-            'revenue' => 'required|string',
-            'gross_profit' => 'required|string',
-            'net_profit' => 'required|string',
-        ]);
-
-        $revenue = RevenueData::find($id);
-        $revenue->update($request->all());
-
-        return redirect()->route('admin_analyze.show', $companyId)->with('success', 'Revenue data updated successfully.');
-    }
-
-    public function destroyRevenue($companyId, $id)
-    {
-        RevenueData::destroy($id);
-        return redirect()->route('admin_analyze.show', $companyId)->with('success', 'Revenue data deleted successfully.');
-    }
-
-    public function createFinancialPosition($companyId)
-    {
-        $company = Company::find($companyId);
-        return view('admin_analyze.emiten.financial_position.create', compact('company'));
-    }
-
-    public function storeFinancialPosition(Request $request, $companyId)
-    {
-        $request->validate([
-            'year' => 'required|integer',
-            'quarter' => 'required|string',
-            'asset' => 'required|string',
-            'liability' => 'required|string',
-            'equity' => 'required|string',
-        ]);
-
-        $company = Company::find($companyId);
-        $company->financialPositions()->create($request->all());
-
-        return redirect()->route('admin_analyze.show', $companyId)->with('success', 'Financial Position data added successfully.');
-    }
-
-    public function editFinancialPosition($companyId, $id)
-    {
-        $company = Company::find($companyId);
-        $financialPosition = FinancialPositionData::find($id);
-        return view('admin_analyze.emiten.financial_position.edit', compact('company', 'financialPosition'));
-    }
-
-    public function updateFinancialPosition(Request $request, $companyId, $id)
-    {
-        $request->validate([
-            'year' => 'required|integer',
-            'quarter' => 'required|string',
-            'asset' => 'required|string',
-            'liability' => 'required|string',
-            'equity' => 'required|string',
-        ]);
-
-        $financialPosition = FinancialPositionData::find($id);
-        $financialPosition->update($request->all());
-
-        return redirect()->route('admin_analyze.show', $companyId)->with('success', 'Financial Position data updated successfully.');
-    }
-
-    public function destroyFinancialPosition($companyId, $id)
-    {
-        FinancialPositionData::destroy($id);
-        return redirect()->route('admin_analyze.show', $companyId)->with('success', 'Financial Position data deleted successfully.');
-    }
-
-    public function createDividend($companyId)
-    {
-        $company = Company::find($companyId);
-        return view('admin_analyze.emiten.dividend.create', compact('company'));
-    }
-
-    public function storeDividend(Request $request, $companyId)
-    {
-        $request->validate([
-            'year' => 'required|integer',
-            'quarter' => 'required|string',
-            'dividend_per_sheet' => 'required|string',
-            'yield' => 'required|string',
-        ]);
-
-        $company = Company::find($companyId);
-        $company->dividends()->create($request->all());
-
-        return redirect()->route('admin_analyze.show', $companyId)->with('success', 'Dividend data added successfully.');
-    }
-
-    public function editDividend($companyId, $id)
-    {
-        $company = Company::find($companyId);
-        $dividend = DividendData::find($id);
-        return view('admin_analyze.emiten.dividend.edit', compact('company', 'dividend'));
-    }
-
-    public function updateDividend(Request $request, $companyId, $id)
-    {
-        $request->validate([
-            'year' => 'required|integer',
-            'quarter' => 'required|string',
-            'dividend_per_sheet' => 'required|string',
-            'yield' => 'required|string',
-        ]);
-
-        $dividend = DividendData::find($id);
-        $dividend->update($request->all());
-
-        return redirect()->route('admin_analyze.show', $companyId)->with('success', 'Dividend data updated successfully.');
-    }
-
-    public function destroyDividend($companyId, $id)
-    {
-        DividendData::destroy($id);
-        return redirect()->route('admin_analyze.show', $companyId)->with('success', 'Dividend data deleted successfully.');
-    }
-
-    public function createProfitabilityRatio($companyId)
-    {
-        $company = Company::find($companyId);
-        return view('admin_analyze.emiten.profitability_ratio.create', compact('company'));
-    }
-
-    public function storeProfitabilityRatio(Request $request, $companyId)
-    {
-        $request->validate([
-            'year' => 'required|integer',
-            'quarter' => 'required|string',
-            'ROE' => 'required|string',
-            'GPM' => 'required|string',
-            'NPM' => 'required|string',
-        ]);
-
-        $company = Company::find($companyId);
-        $company->profitabilityRatios()->create($request->all());
-
-        return redirect()->route('admin_analyze.show', $companyId)->with('success', 'Profitability Ratio data added successfully.');
-    }
-
-    public function editProfitabilityRatio($companyId, $id)
-    {
-        $company = Company::find($companyId);
-        $profitabilityRatio = ProfitabilityRatioData::find($id);
-        return view('admin_analyze.emiten.profitability_ratio.edit', compact('company', 'profitabilityRatio'));
-    }
-
-    public function updateProfitabilityRatio(Request $request, $companyId, $id)
-    {
-        $request->validate([
-            'year' => 'required|integer',
-            'quarter' => 'required|string',
-            'ROE' => 'required|string',
-            'GPM' => 'required|string',
-            'NPM' => 'required|string',
-        ]);
-
-        $profitabilityRatio = ProfitabilityRatioData::find($id);
-        $profitabilityRatio->update($request->all());
-
-        return redirect()->route('admin_analyze.show', $companyId)->with('success', 'Profitability Ratio data updated successfully.');
-    }
-
-    public function destroyProfitabilityRatio($companyId, $id)
-    {
-        ProfitabilityRatioData::destroy($id);
-        return redirect()->route('admin_analyze.show', $companyId)->with('success', 'Profitability Ratio data deleted successfully.');
-    }
-
-    public function createRelativeRatio($companyId)
-    {
-        $company = Company::find($companyId);
-        return view('admin_analyze.emiten.relative_ratio.create', compact('company'));
-    }
-
-    public function storeRelativeRatio(Request $request, $companyId)
-    {
-        $request->validate([
-            'year' => 'required|integer',
-            'quarter' => 'required|string',
-            'EPS' => 'required|string',
-            'PER' => 'required|string',
-            'BVPS' => 'required|string',
-            'PBV' => 'required|string',
-        ]);
-
-        $company = Company::find($companyId);
-        $company->relativeRatios()->create($request->all());
-
-        return redirect()->route('admin_analyze.show', $companyId)->with('success', 'Relative Ratio data added successfully.');
-    }
-
-    public function editRelativeRatio($companyId, $id)
-    {
-        $company = Company::find($companyId);
-        $relativeRatio = RelativeRatioData::find($id);
-        return view('admin_analyze.emiten.relative_ratio.edit', compact('company', 'relativeRatio'));
-    }
-
-    public function updateRelativeRatio(Request $request, $companyId, $id)
-    {
-        $request->validate([
-            'year' => 'required|integer',
-            'quarter' => 'required|string',
-            'EPS' => 'required|string',
-            'PER' => 'required|string',
-            'BVPS' => 'required|string',
-            'PBV' => 'required|string',
-        ]);
-
-        $relativeRatio = RelativeRatioData::find($id);
-        $relativeRatio->update($request->all());
-
-        return redirect()->route('admin_analyze.show', $companyId)->with('success', 'Relative Ratio data updated successfully.');
-    }
-
-    public function destroyRelativeRatio($companyId, $id)
-    {
-        RelativeRatioData::destroy($id);
-        return redirect()->route('admin_analyze.show', $companyId)->with('success', 'Relative Ratio data deleted successfully.');
-    }
-
-    public function createLiquidityRatio($companyId)
-    {
-        $company = Company::find($companyId);
-        return view('admin_analyze.emiten.liquidity_ratio.create', compact('company'));
-    }
-
-    public function storeLiquidityRatio(Request $request, $companyId)
-    {
-        $request->validate([
-            'year' => 'required|integer',
-            'quarter' => 'required|string',
-            'DAR' => 'required|string',
-            'DER' => 'required|string',
-        ]);
-
-        $company = Company::find($companyId);
-        $company->liquidityRatios()->create($request->all());
-
-        return redirect()->route('admin_analyze.show', $companyId)->with('success', 'Liquidity Ratio data added successfully.');
-    }
-
-    public function editLiquidityRatio($companyId, $id)
-    {
-        $company = Company::find($companyId);
-        $liquidityRatio = LiquidityRatioData::find($id);
-        return view('admin_analyze.emiten.liquidity_ratio.edit', compact('company', 'liquidityRatio'));
-    }
-
-    public function updateLiquidityRatio(Request $request, $companyId, $id)
-    {
-        $request->validate([
-            'year' => 'required|integer',
-            'quarter' => 'required|string',
-            'DAR' => 'required|string',
-            'DER' => 'required|string',
-        ]);
-
-        $liquidityRatio = LiquidityRatioData::find($id);
-        $liquidityRatio->update($request->all());
-
-        return redirect()->route('admin_analyze.show', $companyId)->with('success', 'Liquidity Ratio data updated successfully.');
-    }
-
-    public function destroyLiquidityRatio($companyId, $id)
-    {
-        LiquidityRatioData::destroy($id);
-        return redirect()->route('admin_analyze.show', $companyId)->with('success', 'Liquidity Ratio data deleted successfully.');
+            // Redirect dengan pesan sukses
+            return redirect()->back()->with('success', 'Key Ratios updated successfully.');
+        } catch (\Exception $e) {
+            // Redirect dengan pesan error jika terjadi kegagalan
+            return redirect()->back()->with('error', 'Failed to update Key Ratios: ' . $e->getMessage());
+        }
     }
 
     public function showUsers()
@@ -642,5 +534,67 @@ class AnalyzeDashboardController extends Controller
         $totalEmiten = Company::count();
         $totalUser = UserAnalyze::count();
         return view('admin_analyze.user.index', compact('users', 'totalEmiten', 'totalUser'));
+    }
+
+    public function index_setting()
+    {
+        // Misalnya Anda memiliki model Pack untuk data Pack, ambil semua data pack
+        $pack = Pack::all(); // Pastikan model Pack sudah ada
+
+        return view('admin_analyze.setting', compact('pack')); // Load view dengan data Pack
+    }
+
+    // Menyimpan data Purchase Order baru
+    public function store_setting(Request $request)
+    {
+        // Validasi input form
+        $request->validate(['namePack' => 'required|string|max:255',
+            'price' => 'required|string',
+            'description' => 'nullable|string',
+        ]);
+
+        // Simpan ke database (Anda bisa gunakan model untuk menyimpan data)
+        Pack::create([
+            'name' => $request->namePack,
+            'price' => $request->price,
+            'description' => $request->description,
+        ]);
+
+        // Redirect dengan pesan sukses
+        return redirect()->route('admin_analyze.setting')->with('success', 'Data pack berhasil ditambahkan.');
+    }
+
+    // Update data pack (Anda bisa buat logic untuk menampilkan form edit, dll.)
+    public function update_setting(Request $request, $id)
+    {
+        // Validasi input form update
+        $request->validate(['namePack' => 'required|string|max:255',
+            'price' => 'required|string',
+            'description' => 'nullable|string',
+        ]);
+
+        // Temukan data pack berdasarkan id
+        $pack = Pack::findOrFail($id);
+
+        // Update data pack
+        $pack->update([
+            'name' => $request->namePack,
+            'price' => $request->price,
+            'description' => $request->description,
+        ]);
+
+        // Redirect dengan pesan sukses
+        return redirect()->route('admin_analyze.setting')->with('success', 'Data pack berhasil diperbarui.');
+    }
+
+    // Menghapus data pack
+    public function destroy_setting($id)
+    {
+        // Temukan data pack berdasarkan id dan hapus
+        $pack = Pack::findOrFail($id);
+        $pack->delete();
+
+        // Redirect dengan pesan sukses
+        return redirect()->route('admin_analyze.setting')->with('success', 'Data pack berhasil dihapus.');
     }
 }

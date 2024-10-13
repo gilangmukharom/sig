@@ -155,7 +155,7 @@
         </div>
         <div class="col-md-4">
             <div class="card p-3 border-0">
-                <h4>Equity</h4>
+                <h4>Equality</h4>
                 <table class="table">
                     <thead>
                         <tr>
@@ -170,7 +170,7 @@
                             <tr>
                                 <td>{{ $quarter }}</td>
                                 @foreach ($years as $year)
-                                    <td>{{ $positions['equity'][$year] ?? '-' }}</td>
+                                    <td>{{ $positions['equality'][$year] ?? '-' }}</td>
                                 @endforeach
                             </tr>
                         @endforeach

@@ -10,6 +10,16 @@ class Company extends Model
     use HasFactory;
 
     protected $table = 'company';
+    protected $fillable = [
+        'ticker',
+        'name',
+        'address',
+        'market_cap',
+        'price',
+        'growth',
+        'category',
+        'description',
+    ];
 
     public $timestamps = false;
 
