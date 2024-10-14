@@ -64,6 +64,7 @@ Route::prefix('admin_analyze')->group(function () {
 
     Route::get('/settings', [AnalyzeDashboardController::class, 'index_setting'])->name('admin_analyze.setting.index');
     Route::post('/settings', [AnalyzeDashboardController::class, 'store_setting'])->name('admin_analyze.setting.store');
+    Route::get('/settings/{id}/edit', [AnalyzeDashboardController::class, 'edit_setting'])->name('admin_analyze.setting.edit');
     Route::put('/settings/{id}', [AnalyzeDashboardController::class, 'update_setting'])->name('admin_analyze.setting.update');
     Route::delete('/settings/{id}', [AnalyzeDashboardController::class, 'destroy_setting'])->name('admin_analyze.setting.destroy');
 });

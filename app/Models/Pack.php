@@ -10,5 +10,5 @@ class Pack extends Model
     use HasFactory;
 
     protected $table = 'pack';
-    protected $fillable = ['name', 'price', 'description', 'quantity'];
+    protected $fillable = ['name_pack', 'price', 'description'];
 }

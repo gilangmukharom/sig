@@ -5,118 +5,120 @@
         <!-- Settings Title -->
         <div class="card shadow-sm mb-4">
             <div class="card-body d-flex justify-content-between align-items-center">
-                <h3 class="fw-bold">Settings</h3>
+                <h3 class="fw-bold primary-color-text">Settings</h3>
             </div>
         </div>
 
         <!-- Purchase Order Form -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                <h5 class="card-title">Purchase Order</h5>
-                <p class="card-text text-muted">Lorem ipsum dolor sit amet</p>
+        @if($packs->count() < 3)
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Purchase Order</h5>
+                    <form action="{{ route('admin_analyze.setting.store') }}" method="POST">
+                        @csrf
+                        <div class="mb-3">
+                            <label for="namePack" class="form-label">Name Pack</label>
+                            <select class="form-select" name="namePack" id="namePack" required>
+                                <option value="" disabled selected>Pilih Pack</option>
+                                <option value="trial">Trial</option>
+                                <option value="bundle">Bundle</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
 
-                <form action="{{ route('admin_analyze.setting.store') }}" method="POST">
-                    @csrf
-                    <div class="mb-3">
-                        <label for="namePack" class="form-label">Name Pack</label>
-                        <input type="text" class="form-control" id="namePack" name="namePack" value="Bundle" required>
-                    </div>
+                        <div class="mb-3">
+                            <label for="price" class="form-label">Price</label>
+                            <input type="text" class="form-control" name="price" id="price" placeholder="Rp.">
+                        </div>
 
-                    <div class="mb-3">
-                        <label for="price" class="form-label">Price</label>
-                        <select class="form-select" id="price" name="price">
-                            <option selected>Choose</option>
-                            <option value="free">Free</option>
-                            <option value="paid">Paid</option>
-                        </select>
-                    </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        </div>
 
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="3" placeholder="Placeholder content"></textarea>
-                    </div>
-
-                    <div class="d-flex justify-content-end">
-                        <button type="submit" class="btn btn-primary">Submit</button>
-                    </div>
-                </form>
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </div>
+        @else
+            <div class="alert alert-warning">
+                Data pack sudah mencapai batas maksimal 3. Tidak dapat menambahkan data baru.
+            </div>
+        @endif
 
         <!-- Pack Table -->
         <div class="card shadow-sm">
             <div class="card-body">
                 <h5 class="card-title">Pack</h5>
-                <p class="card-text text-muted">Lorem ipsum dolor sit amet consectetur.</p>
-
-                <table class="table table-bordered table-striped">
+                <table class="table table-bordered">
                     <thead>
                         <tr class="text-center">
                             <th>Name Pack</th>
                             <th>Price</th>
                             <th>Description</th>
-                            <th>Banyaknya</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>Bundle</td>
-                            <td>0</td>
-                            <td>desc</td>
-                            <td>9</td>
-                            <td class="text-center">
-                                <button class="btn btn-info btn-sm"><i class="bi bi-eye"></i></button>
-                                <button class="btn btn-warning btn-sm"><i class="bi bi-pencil"></i></button>
-                                <button class="btn btn-danger btn-sm"><i class="bi bi-trash"></i></button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Custom</td>
-                            <td>desc</td>
-                            <td>desc</td>
-                            <td>No limit</td>
-                            <td class="text-center">
-                                <button class="btn btn-info btn-sm"><i class="bi bi-eye"></i></button>
-                                <button class="btn btn-warning btn-sm"><i class="bi bi-pencil"></i></button>
-                                <button class="btn btn-danger btn-sm"><i class="bi bi-trash"></i></button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Trial</td>
-                            <td>desc</td>
-                            <td>desc</td>
-                            <td>3</td>
-                            <td class="text-center">
-                                <button class="btn btn-info btn-sm"><i class="bi bi-eye"></i></button>
-                                <button class="btn btn-warning btn-sm"><i class="bi bi-pencil"></i></button>
-                                <button class="btn btn-danger btn-sm"><i class="bi bi-trash"></i></button>
-                            </td>
-                        </tr>
+                        @foreach ($packs as $pack)
+                            <tr>
+                                <td>{{ $pack->name_pack }}</td>
+                                <td>{{ $pack->price }}</td>
+                                <td>{{ $pack->description }}</td>
+                                <td class="text-center">
+                                    <a href="{{ route('admin_analyze.setting.edit', $pack->id) }}" class="btn btn-warning btn-sm">Edit</a>
+                                    <form action="{{ route('admin_analyze.setting.destroy', $pack->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @endforeach
                     </tbody>
                 </table>
-
-                <!-- Pagination -->
-                <div class="d-flex justify-content-center mt-4">
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination">
-                            <li class="page-item disabled">
-                                <a class="page-link" href="#" aria-label="Previous">
-                                    <span aria-hidden="true">&laquo;</span>
-                                </a>
-                            </li>
-                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                            <li class="page-item"><a class="page-link" href="#">2</a></li>
-                            <li class="page-item"><a class="page-link" href="#">3</a></li>
-                            <li class="page-item">
-                                <a class="page-link" href="#" aria-label="Next">
-                                    <span aria-hidden="true">&raquo;</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </nav>
-                </div>
             </div>
         </div>
     </div>
+
+    <!-- SweetAlert2 Notifications -->
+    @if (session('success'))
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Sukses',
+                text: '{{ session('success') }}',
+                showConfirmButton: false,
+                timer: 2000
+            });
+        </script>
+    @endif
+
+    @if (session('error'))
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: '{{ session('error') }}',
+                showConfirmButton: false,
+                timer: 2000
+            });
+        </script>
+    @endif
+
+    <script>
+        document.getElementById('price').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/[^,\d]/g, '');
+            if (value) {
+                value = parseInt(value, 10).toLocaleString('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0
+                }).replace(/\sIDR|IDR/g, 'Rp. ');
+            }
+            e.target.value = value;
+        });
+    </script>
 @endsection

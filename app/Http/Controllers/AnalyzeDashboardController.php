@@ -28,7 +28,7 @@ class AnalyzeDashboardController extends Controller
 
         // Pass the filtered companies to the view
         return view('admin_analyze.emiten.dashboard', compact('companies'))
-        ->with('totalEmiten', Company::count())
+            ->with('totalEmiten', Company::count())
             ->with('totalUser', UserAnalyze::count());
     }
 
@@ -47,7 +47,8 @@ class AnalyzeDashboardController extends Controller
     public function store(Request $request)
     {
         // Validasi input
-        $request->validate(['ticker' => 'required|string|max:10',  // Kode atau ticker maksimal 10 karakter
+        $request->validate([
+            'ticker' => 'required|string|max:10',  // Kode atau ticker maksimal 10 karakter
             'name' => 'required|string|max:255',   // Nama perusahaan maksimal 255 karakter
             'category' => 'required|string|max:255', // Kategori maksimal 255 karakter
             'address' => 'required|string',        // Alamat harus diisi
@@ -428,8 +429,8 @@ class AnalyzeDashboardController extends Controller
             foreach ($years as $year) {
                 $relativeRatio = RelativeRatioData::where('company_id', $companyId)
                 ->where('year', $year)
-                ->where('quarter', $quarter)
-                ->first();
+                    ->where('quarter', $quarter)
+                    ->first();
                 $relativeRatioData[$quarter]['EPS'][$year] = $relativeRatio ? $relativeRatio->EPS : '-';
                 $relativeRatioData[$quarter]['PER'][$year] = $relativeRatio ? $relativeRatio->PER : '-';
                 $relativeRatioData[$quarter]['BVPS'][$year] = $relativeRatio ? $relativeRatio->BVPS : '-';
@@ -443,8 +444,8 @@ class AnalyzeDashboardController extends Controller
             foreach ($years as $year) {
                 $liquidity = LiquidityRatioData::where('company_id', $companyId)
                 ->where('year', $year)
-                ->where('quarter', $quarter)
-                ->first();
+                    ->where('quarter', $quarter)
+                    ->first();
                 $liquidityRatioData[$quarter]['DAR'][$year] = $liquidity ? $liquidity->DAR : '-';
                 $liquidityRatioData[$quarter]['DER'][$year] = $liquidity ? $liquidity->DER : '-';
             }
@@ -538,63 +539,66 @@ class AnalyzeDashboardController extends Controller
 
     public function index_setting()
     {
-        // Misalnya Anda memiliki model Pack untuk data Pack, ambil semua data pack
-        $pack = Pack::all(); // Pastikan model Pack sudah ada
-
-        return view('admin_analyze.setting', compact('pack')); // Load view dengan data Pack
+        // Mengambil data Pack terbaru terlebih dahulu
+        $packs = Pack::orderBy('created_at', 'desc')->get();
+        return view('admin_analyze.setting', compact('packs'));
     }
 
-    // Menyimpan data Purchase Order baru
     public function store_setting(Request $request)
     {
-        // Validasi input form
-        $request->validate(['namePack' => 'required|string|max:255',
+        // Hitung jumlah data Pack
+        $count = Pack::count();
+
+        // Jika jumlah Pack sudah 3, kembalikan pesan error
+        if ($count >= 3) {
+            return redirect()->route('admin_analyze.setting.index')
+            ->with('error', 'Data pack sudah mencapai batas maksimal 3.');
+        }
+
+        // Validasi dan simpan data
+        $request->validate([
+            'namePack' => 'required|string|max:255',
             'price' => 'required|string',
             'description' => 'nullable|string',
         ]);
 
-        // Simpan ke database (Anda bisa gunakan model untuk menyimpan data)
         Pack::create([
-            'name' => $request->namePack,
+            'name_pack' => $request->namePack,
             'price' => $request->price,
             'description' => $request->description,
         ]);
 
-        // Redirect dengan pesan sukses
-        return redirect()->route('admin_analyze.setting')->with('success', 'Data pack berhasil ditambahkan.');
+        return redirect()->route('admin_analyze.setting.index')
+        ->with('success', 'Data pack berhasil ditambahkan.');
     }
 
-    // Update data pack (Anda bisa buat logic untuk menampilkan form edit, dll.)
+    public function edit_setting($id)
+    {
+        $pack = Pack::findOrFail($id);
+        return view('admin_analyze.edit_setting', compact('pack'));
+    }
+
     public function update_setting(Request $request, $id)
     {
-        // Validasi input form update
-        $request->validate(['namePack' => 'required|string|max:255',
+        $request->validate([
+            'namePack' => 'required|string|max:255',
             'price' => 'required|string',
             'description' => 'nullable|string',
         ]);
 
-        // Temukan data pack berdasarkan id
         $pack = Pack::findOrFail($id);
-
-        // Update data pack
-        $pack->update([
-            'name' => $request->namePack,
+        $pack->update(['name_pack' => $request->namePack,
             'price' => $request->price,
             'description' => $request->description,
         ]);
 
-        // Redirect dengan pesan sukses
-        return redirect()->route('admin_analyze.setting')->with('success', 'Data pack berhasil diperbarui.');
+        return response()->json(['success' => true]);
     }
-
-    // Menghapus data pack
     public function destroy_setting($id)
     {
-        // Temukan data pack berdasarkan id dan hapus
         $pack = Pack::findOrFail($id);
         $pack->delete();
 
-        // Redirect dengan pesan sukses
-        return redirect()->route('admin_analyze.setting')->with('success', 'Data pack berhasil dihapus.');
+        return redirect()->route('admin_analyze.setting.index')->with('success', 'Data pack berhasil dihapus.');
     }
 }

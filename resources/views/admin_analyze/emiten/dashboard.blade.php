@@ -73,7 +73,7 @@
                 @else
                     <!-- Tabel dengan Styling -->
                     <table class="table table-bordered">
-                        <thead class="table-light">
+                        <thead class="table-light custom-th">
                             <tr class="text-center">
                                 <th>Nama Emiten</th>
                                 <th>Kode</th>
@@ -101,8 +101,8 @@
                                     <td class="text-center">{{ number_format((float) $company->growth, 2) }}%</td>
                                     <td class="d-flex gap-2 justify-content-center">
                                         <a href="{{ route('admin_analyze.emiten.edit', $company->id) }}"
-                                            class="btn btn-warning btn-sm">
-                                            <i class="text-white bi bi-pencil"></i>
+                                            class="btn btn-outline-success btn-sm">
+                                            <i class="btn-hover text-success bi bi-pencil"></i>
                                         </a>
                                         <form action="{{ route('admin_analyze.emiten.destroy', $company->id) }}"
                                             method="POST" style="display:inline-block;">
@@ -115,14 +115,14 @@
                                     </td>
                                     <td class="text-center">
                                         <a href="{{ route('admin_analyze.key_ratio.edit', ['companyId' => $company->id, 'id' => $company->id]) }}"
-                                            class="btn btn-warning btn-sm">
-                                            <i class="text-white bi bi-pencil"></i>
+                                            class="btn btn-outline-success btn-sm">
+                                            <i class="btn-hover text-success bi bi-pencil"></i>
                                         </a>
                                     </td>
                                     <td class="text-center">
                                         <a href="{{ route('admin_analyze.key_statistics.edit', ['companyId' => $company->id, 'id' => $company->id]) }}"
-                                            class="btn btn-warning btn-sm">
-                                            <i class="text-white bi bi-pencil"></i>
+                                            class="btn btn-outline-success btn-sm">
+                                            <i class="btn-hover text-success bi bi-pencil"></i>
                                         </a>
                                     </td>
                                 </tr>

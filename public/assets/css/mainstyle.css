@@ -1,3 +1,37 @@
+:root {
+    --primary-color: #43654C; /* Warna utama */
+}
+
+.custom-th {
+    font-family: 'Arial';
+    font-weight: 400;
+    color: #2e3b4e;
+    background-color: #f0f0f5;
+    padding: 12px;
+    letter-spacing: 0.5px;
+}
+
+.btn-hover:hover {
+    color: #ffffff !important;
+}
+
+.pagination .page-link {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+    background-color: #ffffff;
+}
+
+.pagination .page-link:hover {
+    background-color: var(--primary-color);
+    color: #ffffff;
+}
+
+.pagination .active .page-link {
+    background-color: var(--primary-color);
+    color: #ffffff;
+    border-color: var(--primary-color);
+}
+
 .primary-color{
     background-color: #43654C;
 }
