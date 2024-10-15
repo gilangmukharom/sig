@@ -32,7 +32,6 @@
             <h5>Growth net Profit</h5>
             @foreach ($profitData as $data)
                 <div class="d-flex align-items-center mb-2">
-                    <img src="/path/to/icon.png" alt="icon" class="me-2" style="width: 24px; height: 24px;">
                     <div class="flex-grow-1">
                         <div class="d-flex justify-content-between">
                             <span>{{ $data['quarter'] }}</span>
@@ -50,7 +49,6 @@
             <h5>Price</h5>
             @foreach ($priceData as $data)
                 <div class="d-flex align-items-center mb-2">
-                    <img src="/path/to/price-icon.png" alt="icon" class="me-2" style="width: 24px; height: 24px;">
                     <div class="flex-grow-1">
                         <div class="d-flex justify-content-between">
                             <span>{{ $data['quarter'] }}</span>

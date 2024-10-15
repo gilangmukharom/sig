@@ -25,8 +25,9 @@
             </li>
 
             <!-- Data Orders -->
-            <li>
-                <a href="#" class="nav-link {{ Request::is('admin_analyze/orders') ? 'active' : 'text-white' }}">
+            <li class="nav-item">
+                <a href="{{ url('/admin_analyze/data-order') }}" 
+                    class="nav-link {{ Request::is('admin_analyze/data-order') ? 'bg-white' : 'text-white' }}">
                     <i class="bi bi-cart"></i>
                     Data Orders
                 </a>

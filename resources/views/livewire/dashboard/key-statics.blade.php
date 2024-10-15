@@ -32,7 +32,6 @@
             <h5>Growth net Profit</h5>
             @foreach ($profitData as $data)
                 <div class="d-flex align-items-center mb-2">
-                    <i class="bi bi-currency-dollar"></i>
                     <div class="flex-grow-1">
                         <div class="d-flex justify-content-between">
                             <span>{{ $data['quarter'] }}</span>
@@ -50,7 +49,6 @@
             <h5>Price</h5>
             @foreach ($priceData as $data)
                 <div class="d-flex align-items-center mb-2">
-                    <i class="bi bi-cash"></i>
                     <div class="flex-grow-1">
                         <div class="d-flex justify-content-between">
                             <span>{{ $data['quarter'] }}</span>

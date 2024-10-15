@@ -51,7 +51,7 @@
                     <i class="bi bi-box fs-2 text-purple me-3"></i>
                     <div>
                         <h6 class="mb-0">Total Orders</h6>
-                        <h3 class="fw-bold">1,326</h3>
+                        <h3 class="fw-bold">{{$orderCount}}</h3>
                     </div>
                 </div>
             </div>

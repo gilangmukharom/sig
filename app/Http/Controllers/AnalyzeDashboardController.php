@@ -26,8 +26,12 @@ class AnalyzeDashboardController extends Controller
                 ->orWhere('ticker', 'like', '%' . $search . '%');
         })->paginate(5)->appends(['search' => $search]);
 
+        $orderCount = DB::table('user_analyze')
+        ->where('user_type', '!=', 'free')
+        ->count();
+
         // Pass the filtered companies to the view
-        return view('admin_analyze.emiten.dashboard', compact('companies'))
+        return view('admin_analyze.emiten.dashboard', compact('companies', 'orderCount'))
             ->with('totalEmiten', Company::count())
             ->with('totalUser', UserAnalyze::count());
     }
@@ -428,7 +432,7 @@ class AnalyzeDashboardController extends Controller
         foreach ($quarters as $quarter) {
             foreach ($years as $year) {
                 $relativeRatio = RelativeRatioData::where('company_id', $companyId)
-                ->where('year', $year)
+                    ->where('year', $year)
                     ->where('quarter', $quarter)
                     ->first();
                 $relativeRatioData[$quarter]['EPS'][$year] = $relativeRatio ? $relativeRatio->EPS : '-';
@@ -443,7 +447,7 @@ class AnalyzeDashboardController extends Controller
         foreach ($quarters as $quarter) {
             foreach ($years as $year) {
                 $liquidity = LiquidityRatioData::where('company_id', $companyId)
-                ->where('year', $year)
+                    ->where('year', $year)
                     ->where('quarter', $quarter)
                     ->first();
                 $liquidityRatioData[$quarter]['DAR'][$year] = $liquidity ? $liquidity->DAR : '-';
@@ -534,7 +538,11 @@ class AnalyzeDashboardController extends Controller
         $users = UserAnalyze::all();
         $totalEmiten = Company::count();
         $totalUser = UserAnalyze::count();
-        return view('admin_analyze.user.index', compact('users', 'totalEmiten', 'totalUser'));
+        $orderCount = DB::table('user_analyze')
+        ->where('user_type', '!=', 'free')
+        ->count();
+
+        return view('admin_analyze.user.index', compact('users', 'totalEmiten', 'totalUser', 'orderCount'));
     }
 
     public function index_setting()
@@ -587,7 +595,8 @@ class AnalyzeDashboardController extends Controller
         ]);
 
         $pack = Pack::findOrFail($id);
-        $pack->update(['name_pack' => $request->namePack,
+        $pack->update([
+            'name_pack' => $request->namePack,
             'price' => $request->price,
             'description' => $request->description,
         ]);
@@ -600,5 +609,17 @@ class AnalyzeDashboardController extends Controller
         $pack->delete();
 
         return redirect()->route('admin_analyze.setting.index')->with('success', 'Data pack berhasil dihapus.');
+    }
+
+    public function data_order()
+    {
+        $orderCount = DB::table('user_analyze')
+        ->where('user_type', '!=', 'free')
+        ->count();
+        $totalEmiten = Company::count();
+        $totalUser = UserAnalyze::count();
+
+        // Kirim hasil hitungan ke view
+        return view('admin_analyze.data_order', ['orderCount' => $orderCount], compact('totalEmiten', 'totalUser', 'orderCount'));
     }
 }
